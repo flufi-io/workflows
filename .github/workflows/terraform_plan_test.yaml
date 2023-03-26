@@ -17,6 +17,7 @@ jobs:
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
+      varsfile: example.tfvars
 
   download_plan:
     runs-on: ubuntu-latest
