@@ -1,4 +1,4 @@
-aname: terraform
+name: terraform
 on:
   issue_comment:
     types: [ created ]
@@ -19,11 +19,12 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
 
   download_plan:
-    - runs-on: ubuntu-latest
+    job:
+      runs-on: ubuntu-latest
       needs: [terraform_plan]
       steps:
-      - name: Download Terraform artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{needs.terraform_plan.outputs.name}}
-          path: ${{needs.terraform_plan.outputs.path}}
+        - name: Download Terraform artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: ${{needs.terraform_plan.outputs.name}}
+            path: ${{needs.terraform_plan.outputs.path}}
