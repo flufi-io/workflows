@@ -21,9 +21,6 @@ on:
 jobs:
   valid_operation:
     runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.set_environment.outputs.environment }}
-      operation: ${{ steps.set_environment.outputs.operation }}
     steps:
       - name: Check if valid comment
         id: check_valid_comment
@@ -32,10 +29,11 @@ jobs:
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
+          echo $num_words $operation $environment
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
             echo "VALID=true" >> $GITHUB_ENV
           else
-            eecho "VALID=false" >> $GITHUB_ENV
+            echo "VALID=false" >> $GITHUB_ENV
           fi
       - name: Extract environment and operation from comment
         id: set_environment
