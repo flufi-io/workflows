@@ -22,28 +22,27 @@ jobs:
   valid_operation:
     runs-on: ubuntu-latest
     outputs:
-      valid: ${{ steos.check_valid_comment.outputs.valid }}
+      valid: ${{ steps.check_valid_comment.outputs.valid }}
       operation: ${{ steps.set_environment.outputs.operation }}
       environment: ${{ steps.set_environment.outputs.environment }}
     steps:
       - name: Check if valid comment
         id: check_valid_comment
         run: |
-          comment="${{ inputs.comment_body }}"
+          comment=${{ inputs.comment_body }}
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
-          echo "Number of words:" $num_words 
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
-            echo "VALID=true" >> $GITHUB_ENV
+            echo "valid=true" >> $GITHUB_ENV
           else
-            echo "VALID=false" >> $GITHUB_ENV
+            echo "valid=false" >> $GITHUB_ENV
           fi
       - name: Extract environment and operation from comment
         id: set_environment
-        if: env.VALID == 'true'
+        if: steps.check_valid_comment.outputs.valid == 'true'
         run: |
-          export ENVIRONMENT=$(echo "${{ inputs.comment_body }}" | awk '{print $3}')
-          export OPERATION=$(echo "${{ inputs.comment_body }}" | awk '{print $2}')
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "OPERATION=$OPERATION" >> $GITHUB_ENV
+          export environment=$(echo "${{ inputs.comment_body }}" | awk '{print $3}')
+          export operation=$(echo "${{ inputs.comment_body }}" | awk '{print $2}')
+          echo "environment=$environment" >> $GITHUB_ENV
+          echo "operation=$operation" >> $GITHUB_ENV
