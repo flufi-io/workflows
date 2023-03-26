@@ -102,7 +102,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           aws s3 ls
-          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+          SOPS_KMS_ARN=arn:aws:kms:us-east-1:732758452413:key/bcc8401b-38ff-44d7-8355-8f9869d6ba61 sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
