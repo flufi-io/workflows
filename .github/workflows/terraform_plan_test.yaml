@@ -6,6 +6,7 @@ permissions: write-all
 env:
   VALID_ENVIRONMENTS: development,staging,production
 
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -20,55 +21,28 @@ jobs:
           role-to-assume: ${{ secrets.OIDC_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.4.2
-          terraform_wrapper: false
+  validate_comment:
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    with:
+      valid_environments: development,staging,production
+      comment_body: ${{ github.event.comment.body }}
 
-      - name: Get associated open pull request
-        id: get_pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-             | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
-          echo $pr_data
-          pr_number=$(echo "$pr_data" | jq '.number')
-          commit_sha=$(echo "$pr_data" | jq '.sha')
-          forked_repo=$(echo "$pr_data" | jq -r '.repo')
-          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "repo=$repo" >> $GITHUB_OUTPUT
+  terraform_plan:
+    needs: [ setup, validate_comment ]
+    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    secrets: inherit
+    with:
+      environment: ${{ needs.validate_comment.outputs.environment }}
+      operation: ${{ needs.validate_comment.outputs.operation }}
+      varsfile: example.tfvars
+      working-directory: terraform
+      ref: ${{ needs.setup.outputs.commit_sha }}
 
-      - name: Display PR number and commit SHA
-        run: |
-          echo "PR Number: ${{ steps.get_pr.outputs.pr_number }}"
-          echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
-
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
-          repository: ${{ steps.get_pr.outputs.repo }}
-
-      - name: validate_comment
-        uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
-        with:
-          valid_environments: development,staging,production
-          comment_body: ${{ github.event.comment.body }}
-
-      - name: terraform_plan
-        uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
-        with:
-          environment: ${{ needs.validate_comment.outputs.environment }}
-          operation: ${{ needs.validate_comment.outputs.operation }}
-          varsfile: example.tfvars
-          working-directory: terraform
-          ref: ${{ needs.setup.outputs.commit_sha }}
-
-      - name: download_plan
+  download_plan:
+    runs-on: ubuntu-latest
+    needs: [ terraform_plan ]
+    steps:
+      - name: Download Terraform artifacts
         uses: actions/download-artifact@v3
         with:
           name: ${{needs.terraform_plan.outputs.name}}
