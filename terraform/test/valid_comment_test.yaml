@@ -1,0 +1,24 @@
+name: terraform
+
+on:
+  issue_comment:
+    types: [ created ]
+permissions: write-all
+env:
+  VALID_ENVIRONMENTS: development,staging,production
+
+jobs:
+  validate_comment:
+    runs-on: ubuntu-latest
+    uses: flufi-io/workflows/terraform/valid_comment
+    inputs:
+      valid_environments: ${{ env.VALID_ENVIRONMENTS }}
+      comment_body: ${{ github.event.comment.body }}
+  print_environment_and_operation:
+    needs: validate_comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print environment and operation
+        run: |
+          echo "Environment: ${{ needs.validate_comment.outputs.environment }}"
+          echo "Operation: ${{ needs.validate_comment.outputs.operation }}"
