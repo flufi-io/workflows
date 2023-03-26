@@ -61,18 +61,18 @@ jobs:
           echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
           echo "repo=$repo" >> $GITHUB_OUTPUT
 
-      - name: Display PR number and commit SHA
-        run: |
-          ls -lah
-          pwd
-          echo "PR Number: ${{ steps.get_pr.outputs.pr_number }}"
-          echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
-
       - name: checkout
         uses: actions/checkout@v3
         with:
           ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
           repository: ${{ steps.get_pr.outputs.repo }}
+      - name: Display PR number and commit SHA
+        run: |
+          ls -lah
+          pwd
+          find . -name .sops.yaml 
+          echo "PR Number: ${{ steps.get_pr.outputs.pr_number }}"
+          echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
 
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
