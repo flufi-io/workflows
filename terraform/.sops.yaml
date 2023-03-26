@@ -1,3 +1,4 @@
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:732758452413:key/bcc8401b-38ff-44d7-8355-8f9869d6ba61
+      role: arn:aws:iam::732758452413:role/github-oidc
