@@ -41,8 +41,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           ref: ${{ inputs.ref }}
+          repository: ${{ github.repository }}
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
