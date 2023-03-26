@@ -53,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          ref: ${{ steps.get_pr.outputs.commit_sha }}
+          ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
           repository: ${{ steps.get_pr.outputs.repo }}
 
   validate_comment:
