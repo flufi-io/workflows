@@ -53,7 +53,6 @@ jobs:
         with:
           ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
           repository: ${{ steps.get_pr.outputs.repo }}
-          path: terraform
 
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
@@ -68,7 +67,7 @@ jobs:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
-      working-directory: .
+      working-directory: terraform
       ref: ${{ needs.setup.outputs.commit_sha }}
 
   download_plan:
