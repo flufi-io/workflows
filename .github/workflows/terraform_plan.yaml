@@ -96,8 +96,8 @@ jobs:
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
-          find . -name .sops.yaml 
-          sops -e --config ./.sops.yaml -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+          aws s3 ls
+          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
