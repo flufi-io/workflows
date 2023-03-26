@@ -36,8 +36,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" \
-            | jq --arg commit_id "${{ github.event.comment.commit_id }}" '.[] | select(.head.sha == $commit_id) | {number: .number, sha: .head.sha}')
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
+            | jq 'select(.state == "open") | {number: .number, sha: .head.sha}')
           echo $pr_data
           pr_number=$(echo "$pr_data" | jq '.number')
           commit_sha=$(echo "$pr_data" | jq '.sha')
