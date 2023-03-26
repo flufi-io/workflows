@@ -37,7 +37,10 @@ on:
 jobs:
   terraform_plan:
     runs-on: ubuntu-latest
-
+    outputs:
+      commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
+      pr_number: ${{ steps.get_pr.outputs.pr_number }}
+      repo: ${{ steps.get_pr.outputs.repo }}
     steps:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -63,6 +66,8 @@ jobs:
 
       - name: Display PR number and commit SHA
         run: |
+          ls -lah
+          pwd
           echo "PR Number: ${{ steps.get_pr.outputs.pr_number }}"
           echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
 
