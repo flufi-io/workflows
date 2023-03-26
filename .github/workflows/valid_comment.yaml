@@ -39,8 +39,8 @@ jobs:
             echo "valid=false" >> $GITHUB_ENV
           fi
       - name: Extract environment and operation from comment
+        needs: check_valid_comment
         id: set_environment
-        if: steps.check_valid_comment.outputs.valid == 'true'
         run: |
           export environment=$(echo "${{ inputs.comment_body }}" | awk '{print $3}')
           export operation=$(echo "${{ inputs.comment_body }}" | awk '{print $2}')
