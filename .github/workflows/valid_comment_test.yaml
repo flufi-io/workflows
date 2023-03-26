@@ -10,7 +10,7 @@ env:
 jobs:
   validate_comment:
     runs-on: ubuntu-latest
-    uses: flufi-io/workflows/terraform/valid_comment
+    uses: flufi-io/workflows/terraform/valid_comment.yaml@main
     inputs:
       valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
