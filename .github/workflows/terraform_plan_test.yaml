@@ -51,6 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           ref: ${{ steps.get_pr.outputs.commit_sha }}
+          repository: ${{ github.repository }}
 
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
