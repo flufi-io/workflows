@@ -38,6 +38,7 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_ENV
           fi
+          exit 0
       - name: Extract environment and operation from comment
         if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
         id: set_environment
