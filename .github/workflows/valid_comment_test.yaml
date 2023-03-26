@@ -8,7 +8,6 @@ env:
 
 jobs:
   validate_comment:
-    runs-on: ubuntu-latest
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
       valid_environments: ${{ env.VALID_ENVIRONMENTS }}
