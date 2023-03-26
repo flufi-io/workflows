@@ -8,11 +8,11 @@ env:
 
 jobs:
   validate_comment:
-    runs-on: ubuntu-latest
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
-    inputs:
+    with:
       valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
+
   print_environment_and_operation:
     needs: validate_comment
     runs-on: ubuntu-latest
