@@ -1,0 +1,33 @@
+name: Terraform on Comment
+on:
+  workflow_call:
+    inputs:
+      valid_environments:
+        description: 'A comma-separated list of valid environments'
+        required: true
+        type: string
+
+jobs:
+  terraform_plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if valid comment
+        id: check_valid_comment
+        run: |
+          comment="${{ github.event.comment.body }}"
+          num_words=$(echo "$comment" | wc -w)
+          operation=$(echo "$comment" | awk '{print $1 " " $2}')
+          environment=$(echo "$comment" | awk '{print $3}')
+          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
+            echo "::set-output name=valid::true"
+          else
+            echo "::set-output name=valid::false"
+          fi
+      - name: Extract environment and operation from comment
+        if: steps.check_valid_comment.outputs.valid == 'true'
+        run: |
+          export ENVIRONMENT=$(echo "${{ github.event.comment.body }}" | awk '{print $3}')
+          export OPERATION=$(echo "${{ github.event.comment.body }}" | awk '{print $2}')
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "OPERATION=$OPERATION" >> $GITHUB_ENV
+          echo "BODY=${{ github.event.comment.body }}" >> $GITHUB_ENV
