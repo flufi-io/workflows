@@ -85,7 +85,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz .terraform tfplan
+        run: tar czf artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz .terraform tfplan
 
       - name: install sops
         run: |
@@ -96,12 +96,12 @@ jobs:
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
-          sops -e -i artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
+          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}
+          name: terraform-artifacts-${{ steps.get_pr.outputs.commit_sha  }}
           path: ${{ inputs.working-directory }}/artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
           retention-days: 1
