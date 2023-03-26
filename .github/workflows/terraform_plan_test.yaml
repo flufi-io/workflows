@@ -1,0 +1,44 @@
+name: terraform
+on:
+  issue_comment:
+    types: [ created ]
+permissions: write-all
+env:
+  VALID_ENVIRONMENTS: development,staging,production
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.sha }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.2
+        terraform_wrapper: false
+        run:
+          echo ${{ github.sha }}
+  validate_comment:
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    with:
+      valid_environments: development,staging,production
+      comment_body: ${{ github.event.comment.body }}
+  terraform_plan:
+    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    with:
+      environment: ${{ needs.validate_comment.outputs.environment }}
+      operation: ${{ needs.validate_comment.outputs.operation }}
+      varsfile: example.tfvars
+
+  download_plan:
+    runs-on: ubuntu-latest
+    needs: [terraform_plan]
+    steps:
+      - name: Download Terraform artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{needs.terraform_plan.outputs.name}}
+          path: ${{needs.terraform_plan.outputs.path}}
