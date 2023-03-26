@@ -38,7 +38,7 @@ jobs:
           pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" \
             | jq --arg commit_id "${{ github.event.comment.commit_id }}" '.[] | select(.head.sha == $commit_id) | {number: .number, sha: .head.sha}')
-          echo "$pr_data"
+          echo $pr_data
           pr_number=$(echo "$pr_data" | jq '.number')
           commit_sha=$(echo "$pr_data" | jq '.sha')
           echo "PR_NUMBER=$pr_number" >> $GITHUB_OUTPUT
@@ -47,8 +47,7 @@ jobs:
       - name: Display PR number and commit SHA
         run: |
           echo "PR Number: ${{ steps.get_pr.outputs.PR_NUMBER }}"
-          echo "PR Number: $PR_NUMBER"
-          echo "Commit SHA: $COMMIT_SHA"
+          echo "Commit SHA: ${{ steps.get_pr.outputs.$COMMIT_SHA }}"
 
 
   validate_comment:
