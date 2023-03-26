@@ -10,6 +10,10 @@ on:
         description: 'The body of the comment that triggered the workflow'
         required: true
         type: string
+      issue_type:
+        description: 'The type of the issue that triggered the workflow'
+        required: true
+        type: string
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
@@ -33,13 +37,25 @@ jobs:
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
-          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
+          issue_type="${{ inputs.issue_type }}"
+          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment") && is; then
             echo "valid=true" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
-      - name: Extract environment and operation from comment
+      - name: Check if comment is from a Pull Request
         if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
+        id: check_pr_comment
+        run: |
+          issue_url="${{ github.event.issue.url }}"
+          pr_url=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$issue_url" | jq -r '.pull_request.url')
+          if [ "$pr_url" != "null" ]; then
+            echo "pr_comment=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr_comment=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Extract environment and operation from comment
+        if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: set_environment
         run: |
           comment="${{ inputs.comment_body }}"
@@ -47,3 +63,30 @@ jobs:
           export operation=$(echo "$comment" | awk '{print $1 " " $2}')
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT
+
+
+
+name: terraform
+on:
+  issue_comment:
+    types: [ created ]
+permissions: write-all
+env:
+  VALID_ENVIRONMENTS: development,staging,production
+
+jobs:
+  validate_comment:
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    with:
+      valid_environments: development,staging,production
+      issue_comment: ${{ github.event.comment.body }}
+
+  print_environment_and_operation:
+    needs: [validate_comment]
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request
+    steps:
+      - name: Print environment and operation
+        run: |
+          echo "Environment: ${{ needs.validate_comment.outputs.environment }}"
+          echo "Operation: ${{ needs.validate_comment.outputs.operation }}"
