@@ -13,7 +13,7 @@ on:
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
-        value: ${{ jobs.set_environment.outputs.environment }}
+        value: ${{ env.environment }}
       operation:
         description: 'The operation that was extracted from the comment'
         value: ${{  jobs.set_environment.outputs.operation }}
@@ -40,6 +40,7 @@ jobs:
             echo "valid=false" >> $GITHUB_ENV
           fi
       - name: Extract environment and operation from comment
+        if: ${{ env.valid == 'true'}}
         id: set_environment
         run: |
           comment="${{ inputs.comment_body }}"
