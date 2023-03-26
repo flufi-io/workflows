@@ -8,11 +8,6 @@ env:
 
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-
-
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
