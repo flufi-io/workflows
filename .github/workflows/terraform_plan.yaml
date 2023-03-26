@@ -1,0 +1,53 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'The environment that was extracted from the comment'
+        required: true
+        type: string
+      operation:
+        description: 'The operation that was extracted from the comment'
+        required: true
+        type: string
+
+    outputs:
+      artifact_name:
+        description: 'The artifact that contains plan and cache'
+        value: terraform-artifacts-${{ github.sha }}
+      artifact_path:
+        description: 'The path where the artifact is stored'
+        value: artifacts-${{ github.sha }}.tar.gz
+
+
+jobs:
+  terraform_plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.2
+
+      - name: Terraform Init
+        run: terraform init -input=false -no-color -upgrade -reconfigure
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Save Terraform state and plan
+        id: save-artifact
+        run: tar czf artifacts.tar.gz .terraform tfplan
+
+      - name: Upload Terraform artifacts
+        id: upload-artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-artifacts-${{ github.sha }}
+          path: artifacts-${{ github.sha }}.tar.gz
+          retention-days: 1
