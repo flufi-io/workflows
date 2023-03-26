@@ -11,12 +11,12 @@ on:
         required: true
         type: string
     outputs:
-        environment:
-            description: 'The environment that was extracted from the comment'
-            value: ${{ jobs.valid_operation.outputs.environment }}
-        operation:
-            description: 'The operation that was extracted from the comment'
-            value: ${{ jobs.valid_operation.outputs.operation }}
+      environment:
+        description: 'The environment that was extracted from the comment'
+        value: ${{ env.ENVIRONMENT }}
+      operation:
+        description: 'The operation that was extracted from the comment'
+        value: ${{ env.OPERATION }}
 
 jobs:
   valid_operation:
