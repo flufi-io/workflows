@@ -20,6 +20,7 @@ on:
 
 jobs:
   valid_operation:
+    runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set_environment.outputs.environment }}
       operation: ${{ steps.set_environment.outputs.operation }}
