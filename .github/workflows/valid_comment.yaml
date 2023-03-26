@@ -35,7 +35,6 @@ jobs:
           environment=$(echo "$comment" | awk '{print $3}')
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
             echo "valid=true" >> $GITHUB_ENV
-            echo "TRUE"
           else
             echo "valid=false" >> $GITHUB_ENV
           fi
@@ -48,3 +47,4 @@ jobs:
           export operation=$(echo "$comment" | awk '{print $1 " " $2}')
           echo "environment=$environment" >> $GITHUB_ENV
           echo "operation=$operation" >> $GITHUB_ENV
+          echo $env.environment $env.operation
