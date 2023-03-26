@@ -29,7 +29,7 @@ jobs:
       - name: Check if valid comment
         id: check_valid_comment
         run: |
-          comment=${{ inputs.comment_body }}
+          comment="${{ inputs.comment_body }}"
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
