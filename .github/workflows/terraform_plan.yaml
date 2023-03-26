@@ -50,7 +50,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts.tar.gz .terraform tfplan
+        run: tar czf artifacts-${{ github.ref }}.tar.gz .terraform tfplan
 
       - name: Upload Terraform artifacts
         id: upload-artifact
