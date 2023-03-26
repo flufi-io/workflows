@@ -10,10 +10,7 @@ on:
         description: 'The body of the comment that triggered the workflow'
         required: true
         type: string
-      issue_type:
-        description: 'The type of the issue that triggered the workflow'
-        required: true
-        type: string
+
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
