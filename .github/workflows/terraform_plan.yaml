@@ -1,77 +1,53 @@
-name: Terraform Plan
-
+name: terraform
 on:
-  workflow_call:
-    inputs:
-      environment:
-        description: 'The environment that was extracted from the comment'
-        required: true
-        type: string
-      operation:
-        description: 'The operation that was extracted from the comment'
-        required: true
-        type: string
-      varsfile:
-        description: 'The path to the vars file'
-        required: true
-        type: string
-      working-directory:
-        description: 'The path to the working directory'
-        required: false
-        default: '.'
-        type: string
-
-    outputs:
-      artifact_name:
-        description: 'The artifact that contains plan and cache'
-        value: terraform-artifacts-${{ github.ref }}
-      artifact_path:
-        description: 'The path where the artifact is stored'
-        value: artifacts-${{ github.sha }}.tar.gz
-
+  issue_comment:
+    types: [ created ]
+permissions: write-all
+env:
+  VALID_ENVIRONMENTS: development,staging,production
 
 jobs:
-  terraform_plan:
+  setup:
     runs-on: ubuntu-latest
-
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{  github.sha  }}
-      - name: ls
-        run: |
-          echo ${{  github.sha  }}
-          ls -la
-          cat .sops.yaml
-      - name: Terraform Init
-        run: terraform init -input=false -no-color -upgrade -reconfigure
-        working-directory: ${{ inputs.working-directory }}
+          ref: ${{ github.sha }}
 
-      - name: Terraform Plan
-        working-directory: ${{ inputs.working-directory }}
-        run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
-
-      - name: Save Terraform state and plan
-        working-directory: ${{ inputs.working-directory }}
-        id: save-artifact
-        run: tar czf artifacts-${{ github.sha }}.tar.gz .terraform tfplan
-
-      - name: install sops
-        run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
-          sudo dpkg -i sops_3.7.3_amd64.deb
-
-      - name: encrypt terraform plan
-        id: encrypt
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          sops -e -i artifacts-${{ github.sha }}.tar.gz
-
-      - name: Upload Terraform artifacts
-        id: upload-artifact
-        uses: actions/upload-artifact@v3
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          name: terraform-artifacts-${{ github.sha }}
-          path: ${{ inputs.working-directory }}/artifacts-${{ github.sha }}.tar.gz
-          retention-days: 1
+          role-to-assume: ${{ secrets.OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.2
+          terraform_wrapper: false
+
+  validate_comment:
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    with:
+      valid_environments: development,staging,production
+      comment_body: ${{ github.event.comment.body }}
+
+  terraform_plan:
+    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    with:
+      environment: ${{ needs.validate_comment.outputs.environment }}
+      operation: ${{ needs.validate_comment.outputs.operation }}
+      varsfile: example.tfvars
+      working-directory: terraform
+      ref: ${{ github.sha }}
+
+  download_plan:
+    runs-on: ubuntu-latest
+    needs: [ terraform_plan ]
+    steps:
+      - name: Download Terraform artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{needs.terraform_plan.outputs.name}}
+          path: ${{needs.terraform_plan.outputs.path}}
