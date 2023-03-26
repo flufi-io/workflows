@@ -34,7 +34,7 @@ jobs:
       - name: Get associated open pull request
         id: get_pr
         run: |
-          pr_number=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          export pr_number=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/timeline?per_page=100" \
             | jq '.[] | select(.event=="referenced") | select(.source.issue.state=="open") | .commit_id' | head -1)
           echo "commit_sha=$pr_number" >> $GITHUB_OUTPUT
