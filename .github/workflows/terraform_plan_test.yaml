@@ -15,7 +15,7 @@ jobs:
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
-    needs: [ setup, validate_comment ]
+    needs: [ validate_comment ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
     secrets: inherit
     with:
