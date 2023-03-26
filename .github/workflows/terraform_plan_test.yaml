@@ -31,7 +31,6 @@ jobs:
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
-      working_directory: terraform
       varsfile: example.tfvars
 
   download_plan:
