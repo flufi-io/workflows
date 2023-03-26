@@ -1,5 +1,4 @@
 name: terraform
-
 on:
   issue_comment:
     types: [ created ]
@@ -10,7 +9,7 @@ env:
 jobs:
   validate_comment:
     runs-on: ubuntu-latest
-    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@test-workflow
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     inputs:
       valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
