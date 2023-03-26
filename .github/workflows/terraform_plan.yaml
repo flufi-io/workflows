@@ -30,6 +30,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
 

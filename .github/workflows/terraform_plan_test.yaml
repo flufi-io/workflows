@@ -21,11 +21,13 @@ jobs:
         terraform_wrapper: false
         run:
           echo ${{ github.ref }}
+
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
       valid_environments: development,staging,production
       comment_body: ${{ github.event.comment.body }}
+
   terraform_plan:
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
     with:
