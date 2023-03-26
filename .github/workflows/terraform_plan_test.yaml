@@ -34,6 +34,7 @@ jobs:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
+      working-directory: terraform
 
   download_plan:
     runs-on: ubuntu-latest

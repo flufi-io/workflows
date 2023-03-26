@@ -15,6 +15,11 @@ on:
         description: 'The path to the vars file'
         required: true
         type: string
+      working-directory:
+        description: 'The path to the working directory'
+        required: false
+        default: '.'
+        type: string
 
     outputs:
       artifact_name:
@@ -36,11 +41,14 @@ jobs:
           ref: ${{ github.ref }}
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
+        working-directory: ${{ inputs.working-directory }}
 
       - name: Terraform Plan
+        working-directory: ${{ inputs.working-directory }}
         run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
 
       - name: Save Terraform state and plan
+        working-directory: ${{ inputs.working-directory }}
         id: save-artifact
         run: tar czf artifacts.tar.gz .terraform tfplan
 
