@@ -97,7 +97,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           find . -name .sops.yaml 
-          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+          sops -e --config ./.sops.yaml -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
