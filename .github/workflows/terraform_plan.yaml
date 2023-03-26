@@ -39,6 +39,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          ref: ${{ inputs.ref }}
+          repository: ${{ github.repository }
       - name: files
         run: |
           ls -la

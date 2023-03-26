@@ -63,6 +63,7 @@ jobs:
   terraform_plan:
     needs: [ setup, validate_comment ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    secrets: inherit
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
