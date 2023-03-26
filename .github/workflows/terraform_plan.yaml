@@ -20,14 +20,18 @@ on:
         required: false
         default: '.'
         type: string
+      ref:
+        description: 'The ref to checkout'
+        required: true
+        type: string
 
     outputs:
       artifact_name:
         description: 'The artifact that contains plan and cache'
-        value: terraform-artifacts-${{ github.ref }}
+        value: terraform-artifacts-${{ inputs.ref }}
       artifact_path:
         description: 'The path where the artifact is stored'
-        value: artifacts-${{ github.ref }}.tar.gz
+        value: artifacts-${{ inputs.ref }}.tar.gz
 
 
 jobs:
@@ -38,10 +42,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.comment.pull_request.head.sha }}
+            ref: ${{ inputs.ref }}
       - name: ls
         run: |
-          echo ${{ github.event.comment.pull_request.head.sha }}
+          echo ${{  inputs.ref  }}
           ls -la
           cat .sops.yaml
       - name: Terraform Init
@@ -55,7 +59,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts-${{ github.sha }}.tar.gz .terraform tfplan
+        run: tar czf artifacts-${{ inputs.ref }}.tar.gz .terraform tfplan
 
       - name: install sops
         run: |
@@ -66,12 +70,12 @@ jobs:
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
-          sops -e -i artifacts-${{ github.sha }}.tar.gz
+          sops -e -i artifacts-${{ inputs.ref }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-artifacts-${{ github.sha }}
-          path: ${{ inputs.working-directory }}/artifacts-${{ github.sha }}.tar.gz
+          name: terraform-artifacts-${{ inputs.ref }}
+          path: ${{ inputs.working-directory }}/artifacts-${{ inputs.ref }}.tar.gz
           retention-days: 1

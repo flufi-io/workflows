@@ -10,24 +10,22 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ github.ref }}
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.sha }}
 
-    - name: configure aws credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.OIDC_ROLE }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.4.2
-        terraform_wrapper: false
-        run:
-          echo ${{ github.ref }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.2
+          terraform_wrapper: false
 
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
@@ -42,10 +40,11 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
+      ref: ${{ github.sha }}
 
   download_plan:
     runs-on: ubuntu-latest
-    needs: [terraform_plan]
+    needs: [ terraform_plan ]
     steps:
       - name: Download Terraform artifacts
         uses: actions/download-artifact@v3
