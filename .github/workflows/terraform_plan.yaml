@@ -27,7 +27,7 @@ on:
         value: terraform-artifacts-${{ github.ref }}
       artifact_path:
         description: 'The path where the artifact is stored'
-        value: artifacts-${{ github.ref }}.tar.gz
+        value: artifacts-${{ github.sha }}.tar.gz
 
 
 jobs:
@@ -38,10 +38,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.comment.pull_request.head.sha }}
+          ref: ${{  github.sha  }}
       - name: ls
         run: |
-          echo ${{ github.event.comment.pull_request.head.sha }}
+          echo ${{  github.sha  }}
           ls -la
           cat .sops.yaml
       - name: Terraform Init
