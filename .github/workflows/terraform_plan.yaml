@@ -39,6 +39,11 @@ jobs:
       pr_number: ${{ steps.get_pr.outputs.pr_number }}
       repo: ${{ steps.get_pr.outputs.repo }}
     steps:
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:

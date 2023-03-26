@@ -11,11 +11,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.OIDC_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
+
 
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
