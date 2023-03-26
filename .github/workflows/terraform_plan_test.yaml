@@ -13,7 +13,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.comment.sha }}
+          ref: ${{ github.event.comment.sha }}
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -40,7 +40,7 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
-      ref: ${{ github.comment.sha }}
+      ref: ${{ github.event.comment.sha }}
 
   download_plan:
     runs-on: ubuntu-latest
