@@ -19,10 +19,10 @@ on:
     outputs:
       artifact_name:
         description: 'The artifact that contains plan and cache'
-        value: terraform-artifacts-${{ github.sha }}
+        value: terraform-artifacts-${{ github.ref }}
       artifact_path:
         description: 'The path where the artifact is stored'
-        value: artifacts-${{ github.sha }}.tar.gz
+        value: artifacts-${{ github.ref }}.tar.gz
 
 
 jobs:
@@ -45,5 +45,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: terraform-artifacts-${{ github.sha }}
-          path: artifacts-${{ github.sha }}.tar.gz
+          path: artifacts-${{ github.ref }}.tar.gz
           retention-days: 1
