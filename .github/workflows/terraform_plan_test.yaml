@@ -13,6 +13,9 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
+      pr_number: ${{ steps.get_pr.outputs.pr_number }}
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -25,6 +28,7 @@ jobs:
         with:
           terraform_version: 1.4.2
           terraform_wrapper: false
+
       - name: Get associated open pull request
         id: get_pr
         env:
@@ -61,7 +65,7 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
-      ref: ${{ steps.get_pr.outputs.commit_sha }}
+      ref: ${{ jobs.setup.outputs.commit_sha }}
 
   download_plan:
     runs-on: ubuntu-latest
