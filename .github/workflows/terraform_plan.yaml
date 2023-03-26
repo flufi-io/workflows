@@ -44,8 +44,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          ref: ${{ inputs.ref }}
-          repository: ${{ github.repository }
+          ref: refs/pull/${{ inputs.ref }}/head
+          repository: ${{ github.repository }}
       - name: files
         run: |
           ls -la
