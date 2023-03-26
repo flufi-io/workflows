@@ -109,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: terraform-artifacts-${{ steps.get_pr.outputs.commit_sha  }}
-          path: ${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz
+          path: artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
           retention-days: 1
