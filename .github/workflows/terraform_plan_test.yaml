@@ -6,7 +6,6 @@ permissions: write-all
 env:
   VALID_ENVIRONMENTS: development,staging,production
 
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -54,28 +53,22 @@ jobs:
           ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
           repository: ${{ steps.get_pr.outputs.repo }}
 
-  validate_comment:
-    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
-    with:
-      valid_environments: development,staging,production
-      comment_body: ${{ github.event.comment.body }}
+      - name: validate_comment
+        uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+        with:
+          valid_environments: development,staging,production
+          comment_body: ${{ github.event.comment.body }}
 
-  terraform_plan:
-    needs: [ setup, validate_comment ]
-    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
-    secrets: inherit
-    with:
-      environment: ${{ needs.validate_comment.outputs.environment }}
-      operation: ${{ needs.validate_comment.outputs.operation }}
-      varsfile: example.tfvars
-      working-directory: terraform
-      ref: ${{ needs.setup.outputs.commit_sha }}
+      - name: terraform_plan
+        uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+        with:
+          environment: ${{ needs.validate_comment.outputs.environment }}
+          operation: ${{ needs.validate_comment.outputs.operation }}
+          varsfile: example.tfvars
+          working-directory: terraform
+          ref: ${{ needs.setup.outputs.commit_sha }}
 
-  download_plan:
-    runs-on: ubuntu-latest
-    needs: [ terraform_plan ]
-    steps:
-      - name: Download Terraform artifacts
+      - name: download_plan
         uses: actions/download-artifact@v3
         with:
           name: ${{needs.terraform_plan.outputs.name}}
