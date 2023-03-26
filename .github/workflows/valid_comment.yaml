@@ -13,7 +13,7 @@ on:
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
-        value: ${{ env.environment }}
+        value: ${{ jobs.valid_operation.outputs.environment }}
       operation:
         description: 'The operation that was extracted from the comment'
         value: ${{  jobs.set_environment.outputs.operation }}
