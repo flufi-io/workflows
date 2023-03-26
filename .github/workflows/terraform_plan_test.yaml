@@ -40,7 +40,7 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
-      ref: ${{ github.sha }}
+      ref: ${{ github.comment.sha }}
 
   download_plan:
     runs-on: ubuntu-latest
