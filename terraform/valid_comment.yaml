@@ -13,10 +13,10 @@ on:
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
-        value: ${{ steps.set_environment.outputs.environment }}
+        value: ${{ env.ENVIRONMENT }}
       operation:
         description: 'The operation that was extracted from the comment'
-        value: ${{ steps.set_environment.outputs.operation}}
+        value: ${{  env.OPERATION }}
 
 jobs:
   valid_operation:
@@ -39,7 +39,7 @@ jobs:
           fi
       - name: Extract environment and operation from comment
         id: set_environment
-        if: steps.check_valid_comment.outputs.VALID == 'true'
+        if: env.VALID == 'true'
         run: |
           export ENVIRONMENT=$(echo "${{ inputs.comment_body }}" | awk '{print $3}')
           export OPERATION=$(echo "${{ inputs.comment_body }}" | awk '{print $2}')
