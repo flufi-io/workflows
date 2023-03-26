@@ -47,4 +47,4 @@ jobs:
           export operation=$(echo "$comment" | awk '{print $1 " " $2}')
           echo "environment=$environment" >> $GITHUB_ENV
           echo "operation=$operation" >> $GITHUB_ENV
-          echo $env.environment $env.operation
+          echo $environment $operation
