@@ -30,24 +30,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.4.2
-          terraform_wrapper: false
-
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
-        working-directory: terraform
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
-        working-directory: terraform
 
       - name: Save Terraform state and plan
         id: save-artifact
