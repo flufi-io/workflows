@@ -7,9 +7,6 @@ env:
   VALID_ENVIRONMENTS: development,staging,production
 
 
-
-
-
 jobs:
   setup:
     runs-on: ubuntu-latest
