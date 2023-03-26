@@ -20,18 +20,15 @@ on:
         required: false
         default: '.'
         type: string
-      ref:
-        description: 'The ref to checkout'
-        required: true
-        type: string
+
 
     outputs:
       artifact_name:
         description: 'The artifact that contains plan and cache'
-        value: terraform-artifacts-${{ inputs.ref }}
+        value: terraform-artifacts-${{ jobs.terraform_plan.outputs.commit_sha }}.tar.gz
       artifact_path:
         description: 'The path where the artifact is stored'
-        value: artifacts-${{ inputs.ref }}.tar.gz
+        value: artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
 
 
 jobs:
@@ -88,7 +85,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts-${{ inputs.ref }}.tar.gz .terraform tfplan
+        run: tar czf artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz .terraform tfplan
 
       - name: install sops
         run: |
@@ -99,12 +96,12 @@ jobs:
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
-          sops -e -i artifacts-${{ inputs.ref }}.tar.gz
+          sops -e -i artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-artifacts-${{ inputs.ref }}
-          path: ${{ inputs.working-directory }}/artifacts-${{ inputs.ref }}.tar.gz
+          name: terraform-artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}
+          path: ${{ inputs.working-directory }}/artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
           retention-days: 1
