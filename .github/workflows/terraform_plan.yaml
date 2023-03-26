@@ -57,5 +57,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: terraform-artifacts-${{ github.sha }}
-          path: artifacts-${{ github.ref }}.tar.gz
+          path: ${{ inputs.working-directory }}/artifacts-${{ github.ref }}.tar.gz
           retention-days: 1
