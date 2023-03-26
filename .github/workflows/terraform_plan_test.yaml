@@ -14,12 +14,13 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: ${{ github.sha }}
-        path: terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.4.2
         terraform_wrapper: false
+        run:
+          echo ${{ github.sha }}
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
@@ -30,6 +31,7 @@ jobs:
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
+      working_directory: terraform
       varsfile: example.tfvars
 
   download_plan:
