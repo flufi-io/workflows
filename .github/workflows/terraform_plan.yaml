@@ -11,6 +11,10 @@ on:
         description: 'The operation that was extracted from the comment'
         required: true
         type: string
+      varsfile:
+        description: 'The path to the vars file'
+        required: true
+        type: string
 
     outputs:
       artifact_name:
@@ -42,7 +46,7 @@ jobs:
         working-directory: terraform
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
         working-directory: terraform
 
       - name: Save Terraform state and plan

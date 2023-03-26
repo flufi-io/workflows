@@ -56,6 +56,6 @@ jobs:
         run: |
           comment="${{ inputs.comment_body }}"
           export environment=$(echo "$comment" | awk '{print $3}')
-          export operation=$(echo "$comment" | awk '{print $1 " " $2}')
+          export operation=$(echo "$comment" | awk '{print $2}')
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT

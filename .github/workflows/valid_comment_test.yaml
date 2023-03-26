@@ -19,5 +19,4 @@ jobs:
     steps:
       - name: Print environment and operation
         run: |
-          echo "Environment: ${{ needs.validate_comment.outputs.environment }}"
-          echo "Operation: ${{ needs.validate_comment.outputs.operation }}"
+          ${{ github.event.comment.body }} == terraform ${{needs.validate_comment.outputs.operation}} ${{needs.validate_comment.outputs.environment}}
