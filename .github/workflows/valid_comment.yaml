@@ -1,0 +1,48 @@
+name: Validate if comment is valid
+on:
+  workflow_call:
+    inputs:
+      valid_environments:
+        description: 'A comma-separated list of valid environments'
+        required: true
+        type: string
+      comment_body:
+        description: 'The body of the comment that triggered the workflow'
+        required: true
+        type: string
+    outputs:
+      environment:
+        description: 'The environment that was extracted from the comment'
+        value: ${{ job.valid_operation.outputs.environment
+      operation:
+        description: 'The operation that was extracted from the comment'
+        value: ${{  job.valid_operation.outputs.operation }}
+
+jobs:
+  valid_operation:
+    runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steps.check_valid_comment.outputs.valid }}
+      operation: ${{ steps.set_environment.outputs.operation }}
+      environment: ${{ steps.set_environment.outputs.environment }}
+    steps:
+      - name: Check if valid comment
+        id: check_valid_comment
+        run: |
+          comment=${{ inputs.comment_body }}
+          num_words=$(echo "$comment" | wc -w)
+          operation=$(echo "$comment" | awk '{print $1 " " $2}')
+          environment=$(echo "$comment" | awk '{print $3}')
+          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
+            echo "valid=true" >> $GITHUB_ENV
+          else
+            echo "valid=false" >> $GITHUB_ENV
+          fi
+      - name: Extract environment and operation from comment
+        id: set_environment
+        if: steps.check_valid_comment.outputs.valid == 'true'
+        run: |
+          export environment=$(echo "${{ inputs.comment_body }}" | awk '{print $3}')
+          export operation=$(echo "${{ inputs.comment_body }}" | awk '{print $2}')
+          echo "environment=$environment" >> $GITHUB_ENV
+          echo "operation=$operation" >> $GITHUB_ENV
