@@ -34,16 +34,16 @@ jobs:
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
-            echo "valid=true" >> $GITHUB_ENV
+            echo "valid=true" >> $GITHUB_OUTPUT
           else
-            echo "valid=false" >> $GITHUB_ENV
+            echo "valid=false" >> $GITHUB_OUTPUT
           fi
       - name: Extract environment and operation from comment
-        if: ${{ env.valid == 'true'}}
+        if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
         id: set_environment
         run: |
           comment="${{ inputs.comment_body }}"
           export environment=$(echo "$comment" | awk '{print $3}')
           export operation=$(echo "$comment" | awk '{print $1 " " $2}')
-          echo "environment=$environment" >> $GITHUB_ENV
-          echo "operation=$operation" >> $GITHUB_ENV
+          echo "environment=$environment" >> $GITHUB_OUTPUT
+          echo "operation=$operation" >> $GITHUB_OUTPUT
