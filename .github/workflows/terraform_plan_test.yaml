@@ -30,18 +30,24 @@ jobs:
         with:
           terraform_version: 1.4.2
           terraform_wrapper: false
-
       - name: Get associated open pull request
         id: get_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          export pr_number=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/timeline?per_page=100" \
-            | jq '.[] | select(.event=="referenced") | select(.source.issue.state=="open") | .commit_id' | head -1)
-          echo "commit_sha=$pr_number" >> $GITHUB_OUTPUT
-          echo $pr_number
-      - name: Display commit SHA
+          pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" \
+            | jq '.[] | select(.head.sha == ${{ github.event.comment.commit_id }}) | {number: .number, sha: .head.sha}')
+          pr_number=$(echo "$pr_data" | jq '.number')
+          commit_sha=$(echo "$pr_data" | jq '.sha')
+          echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+          echo "COMMIT_SHA=$commit_sha" >> $GITHUB_ENV
+
+      - name: Display PR number and commit SHA
         run: |
-          echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
+          echo "PR Number: $PR_NUMBER"
+          echo "Commit SHA: $COMMIT_SHA"
+
 
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
