@@ -13,14 +13,18 @@ on:
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
-        value: ${{ env.ENVIRONMENT }}
+        value: ${{ job.valid_operation.outputs.environment
       operation:
         description: 'The operation that was extracted from the comment'
-        value: ${{  env.OPERATION }}
+        value: ${{  job.valid_operation.outputs.operation }}
 
 jobs:
   valid_operation:
     runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steos.check_valid_comment.outputs.valid }}
+      operation: ${{ steps.set_environment.outputs.operation }}
+      environment: ${{ steps.set_environment.outputs.environment }}
     steps:
       - name: Check if valid comment
         id: check_valid_comment
@@ -29,7 +33,7 @@ jobs:
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
-          echo $num_words $operation $environment
+          echo "Number of words:" $num_words 
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
             echo "VALID=true" >> $GITHUB_ENV
           else
