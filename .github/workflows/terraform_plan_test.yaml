@@ -63,7 +63,7 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
-      ref: ${{ jobs.setup.outputs.commit_sha }}
+      ref: ${{ needs.setup.outputs.commit_sha }}
 
   download_plan:
     runs-on: ubuntu-latest
