@@ -47,7 +47,7 @@ jobs:
       - name: Display PR number and commit SHA
         run: |
           echo "PR Number: ${{ steps.get_pr.outputs.PR_NUMBER }}"
-          echo "Commit SHA: ${{ steps.get_pr.outputs.$COMMIT_SHA }}"
+          echo "Commit SHA: ${{ steps.get_pr.outputs.COMMIT_SHA }}"
 
 
   validate_comment:
