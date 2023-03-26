@@ -38,7 +38,7 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/timeline?per_page=100" \
             | jq '.[] | select(.event=="referenced") | select(.source.issue.state=="open") | .commit_id' | head -1)
           echo "commit_sha=$pr_number" >> $GITHUB_OUTPUT
-
+          echo $pr_number
       - name: Display commit SHA
         run: |
           echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
