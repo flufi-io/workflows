@@ -71,6 +71,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
+          search_artifacts: true
           name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
