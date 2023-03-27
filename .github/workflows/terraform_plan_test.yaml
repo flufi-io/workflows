@@ -15,7 +15,7 @@ jobs:
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
-    if: ${{ needs.validate_comment.outputs.operation }} == 'plan'
+    if: ${{ needs.validate_comment.outputs.operation == 'plan' }}
     needs: [ validate_comment ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
     secrets: inherit

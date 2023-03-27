@@ -40,6 +40,7 @@ on:
 
 jobs:
   terraform_plan:
+    if: ${{ inputs.operation == 'plan' }}
     runs-on: ubuntu-latest
     outputs:
         artifact: ${{ steps.setup.outputs.artifact }}
