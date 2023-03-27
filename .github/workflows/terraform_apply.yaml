@@ -95,6 +95,6 @@ jobs:
       - name: terraform apply
         id: terraform_apply
         run: |
-          terraform  ${{ inputs.operation }} -var-file=${{ inputs.environment }}.tfvars -input=false -no-color -auto-approve tfplan
+          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
