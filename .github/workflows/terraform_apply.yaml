@@ -63,10 +63,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ steps.setup.outputs.artifact }}
-          run: |
-            ls -R
-            tar xzf ${{ steps.setup.outputs.artifact }}
+          path: ${{ steps.outputs.artifact }}
         continue-on-error: false
 
       - name: install sops
@@ -78,12 +75,8 @@ jobs:
 
       - name: decrypt plan
         run: |
-
+          ls -R
           sops -d -i ${{ steps.setup.outputs.artifact }}
-          pwd
-          ls -lah
-          cd terraform 
-          ls -lah
         continue-on-error: false
 
       - name: extract plan
