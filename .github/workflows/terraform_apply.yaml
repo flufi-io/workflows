@@ -83,7 +83,7 @@ jobs:
 
       - name: extract plan
         run: |
-          tar xzf ${{ steps.setup.outputs.artifact_name }} -C ${{ inputs.working-directory }}
+          tar xzf ${{ steps.setup.outputs.artifact_name }} 
           rm ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
@@ -92,4 +92,3 @@ jobs:
         run: |
           terraform -var-file=${{ inputs.environment }}.tfvars -input=false -no-color -auto-approve tfplan
         continue-on-error: false
-        working-directory: ${{ inputs.working-directory }}
