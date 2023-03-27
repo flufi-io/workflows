@@ -29,8 +29,8 @@ jobs:
       repo: ${{ needs.validate_comment.outputs.repo }}
 
   terraform_apply:
-    if: ${{ needs.validate_comment.outputs.operation }} == 'apply'
     needs: [ validate_comment, terraform_plan]
+    if: ${{ needs.validate_comment.outputs.operation }} == 'apply'
     uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
     secrets: inherit
     with:
