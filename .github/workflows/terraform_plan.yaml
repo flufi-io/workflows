@@ -47,7 +47,7 @@ jobs:
       - name: setup
         id: setup
         run: |
-          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUTS
+          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
