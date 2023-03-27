@@ -100,7 +100,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz
-         echo "artifact=artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz" >> $GITHUB_OUTPUT
+         echo "artifact=${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz" >> $GITHUB_OUTPUT
         continue-on-error: false
 
       - name: Upload Terraform artifacts
