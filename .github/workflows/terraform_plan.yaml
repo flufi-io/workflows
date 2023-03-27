@@ -104,5 +104,5 @@ jobs:
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+          path: ${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
           retention-days: 1
