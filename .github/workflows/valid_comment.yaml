@@ -27,7 +27,7 @@ on:
       commit_sha:
         description: 'The commit sha that was extracted from the comment'
         value: ${{ jobs.valid_operation.outputs.commit_sha }}
-      artifact_path:
+      artifact_name:
         description: 'The path where the artifact is stored'
         value: plan-${{ jobs.valid_operation.outputs.environment }}-${{ jobs.valid_operation.outputs.commit_sha }}.tar.gz
 

@@ -32,8 +32,8 @@ on:
         description: 'The commit sha that was extracted from the comment'
         required: true
         type: string
-      artifact_path:
-        description: 'The path where the artifact is stored'
+      artifact_name:
+        description: 'The name of the artifact'
         required: true
         type: string
 
@@ -50,7 +50,7 @@ jobs:
       commit_sha: ${{ inputs.commit_sha }}
       pr_number: ${{ inputs.pr_number }}
       repo: ${{ inputs.repo }}
-      artifact_path: "${{ inputs.working-directory }}/artifacts-${{ inputs.commit_sha }}.tar.gz"
+      artifact_path: ${{ steps.setup.outputs.artifact_path }}
     steps:
       - name: setup
         id: setup
@@ -87,7 +87,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf ${{ inputs.artifact_path }} .terraform tfplan
+        run: tar czf ${{ inputs.artifact_path }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
         continue-on-error: false
 
       - name: install sops

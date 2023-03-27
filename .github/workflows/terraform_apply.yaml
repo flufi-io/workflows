@@ -28,7 +28,7 @@ on:
         description: 'The commit sha that was extracted from the comment'
         required: true
         type: string
-      artifact_path:
+      artifact_name:
         description: 'The path where the artifact is stored'
         required: true
         type: string
@@ -40,7 +40,7 @@ jobs:
       - name: setup
         id: setup
         run: |
-          echo "artifact_path=${{ inputs.working-directory }}/${{ inputs.artifact_path }}" >> $GITHUB_ENV
+          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_ENV
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -57,7 +57,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
-          path: ${{ steps.outputs.artifact_path }}
+          path: ${{ steps.outputs.artifact }}
         continue-on-error: false
 
       - name: install sops
@@ -69,12 +69,12 @@ jobs:
 
       - name: decrypt plan
         run: |
-          sops -d -i ${{ steps.outputs.artifact_path }}
+          sops -d -i ${{ steps.outputs.artifact }}
         continue-on-error: false
 
       - name: extract plan
         run: |
-          tar xzf $${{ steps.outputs.artifact_path }}
+          tar xzf $${{ steps.outputs.artifact }}
         continue-on-error: false
 
       - name: terraform apply
