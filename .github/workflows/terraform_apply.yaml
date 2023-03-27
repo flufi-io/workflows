@@ -63,7 +63,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
-          path: ${{ steps.outputs.artifact }}
+          name: ${{ steps.outputs.artifact }}
         continue-on-error: false
 
       - name: install sops
@@ -76,7 +76,7 @@ jobs:
       - name: decrypt plan
         run: |
           ls -R
-          sops -d -i ${{ steps.setup.outputs.artifact }}
+          sops -d -i artifact/${{ inputs.artifact_name }}
         continue-on-error: false
 
       - name: extract plan
