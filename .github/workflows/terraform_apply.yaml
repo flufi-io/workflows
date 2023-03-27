@@ -72,18 +72,19 @@ jobs:
         run: |
           wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
           sudo dpkg -i sops_3.7.3_amd64.deb
+          rm sops_3.7.3_amd64.deb
         continue-on-error: false
 
       - name: decrypt plan
         run: |
           ls -R
-          sops -d -i artifact/${{ steps.setup.outputs.artifact_name }}
+          sops -d -i ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
       - name: extract plan
         run: |
-          tar xzf artifact/${{ inputs.artifact_name }} -C ${{ inputs.working-directory }}
-          rm artifact/${{ steps.setup.outputs.artifact_name }}
+          tar xzf ${{ inputs.artifact_name }} -C ${{ inputs.working-directory }}
+          rm ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
       - name: terraform apply
