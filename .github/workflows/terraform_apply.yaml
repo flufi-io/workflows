@@ -60,6 +60,12 @@ jobs:
           terraform_version: 1.4.2
           terraform_wrapper: false
 
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          ref:  refs/pull/${{ inputs.pr_number }}/head
+          repository: ${{ inputs.repo }}
+
       - name: Download Terraform artifacts
         id: download-artifact
         uses: actions/download-artifact@v3
@@ -82,7 +88,7 @@ jobs:
 
       - name: extract plan
         run: |
-          tar xzf ${{ steps.setup.outputs.artifact_name }} 
+          tar xzf ${{ steps.setup.outputs.artifact_name }}
           rm ${{ steps.setup.outputs.artifact_name }}
           ls -R
         continue-on-error: false
