@@ -30,7 +30,7 @@ jobs:
 
   terraform_apply:
     needs: [ validate_comment, terraform_plan]
-    if: ${{ needs.validate_comment.outputs.operation }} == 'apply'
+    if: ${{ needs.validate_comment.outputs.operation == 'apply' }}
     uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
     secrets: inherit
     with:
