@@ -25,6 +25,8 @@ jobs:
       varsfile: example.tfvars
       working-directory: terraform
       artifact_path: ${{ needs.validate_comment.outputs.artifact_path }}
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
+      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
 
   download_plan:
     runs-on: ubuntu-latest

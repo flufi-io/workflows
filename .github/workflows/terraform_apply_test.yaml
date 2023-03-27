@@ -24,6 +24,9 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
+      artifact_path: ${{ needs.validate_comment.outputs.artifact_path }}
+      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
 
   terraform_apply:
     if: ${{ needs.validate_comment.outputs.operation }} == 'apply'
@@ -34,4 +37,6 @@ jobs:
       working-directory: terraform
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
-      artifact_path: ${{needs.terraform_plan.outputs.artifact_path}}
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
+      artifact_path: ${{ needs.validate_comment.outputs.artifact_path }}
+      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
