@@ -83,7 +83,7 @@ jobs:
 
       - name: extract plan
         run: |
-          tar xzf ${{ inputs.artifact_name }} -C ${{ inputs.working-directory }}
+          tar xzf ${{ steps.setup.outputs.artifact_name }} -C ${{ inputs.working-directory }}
           rm ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
