@@ -16,6 +16,18 @@ on:
         required: false
         default: '.'
         type: string
+      repo:
+        description: 'The repo that was extracted from the comment'
+        required: true
+        type: string
+      pr_number:
+        description: 'The PR number that was extracted from the comment'
+        required: true
+        type: string
+      commit_sha:
+        description: 'The commit sha that was extracted from the comment'
+        required: true
+        type: string
       artifact_path:
         description: 'The path where the artifact is stored'
         required: true

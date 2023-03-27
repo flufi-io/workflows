@@ -32,6 +32,10 @@ on:
         description: 'The commit sha that was extracted from the comment'
         required: true
         type: string
+      artifact_path:
+        description: 'The path where the artifact is stored'
+        required: true
+        type: string
 
     outputs:
       artifact_path:
