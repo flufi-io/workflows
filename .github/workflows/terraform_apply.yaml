@@ -45,6 +45,7 @@ jobs:
       - name: setup
         id: setup
         run: |
+          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
 
       - name: configure aws credentials
@@ -63,7 +64,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.environment }}-${{ inputs.commit_sha }}
+          name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
       - name: install sops
@@ -76,13 +77,13 @@ jobs:
       - name: decrypt plan
         run: |
           ls -R
-          sops -d -i artifact/${{ inputs.artifact_name }}
+          sops -d -i artifact/${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
       - name: extract plan
         run: |
           tar xzf artifact/${{ inputs.artifact_name }} -C ${{ inputs.working-directory }}
-          rm artifact/${{ inputs.artifact_name }}
+          rm artifact/${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
       - name: terraform apply
