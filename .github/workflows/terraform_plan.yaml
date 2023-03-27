@@ -34,7 +34,7 @@ jobs:
       commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
       pr_number: ${{ steps.get_pr.outputs.pr_number }}
       repo: ${{ steps.get_pr.outputs.repo }}
-      artifact_path: artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+      artifact_path: "${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz"
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -108,6 +108,6 @@ jobs:
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: "${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz"
+          path: "${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz"
           retention-days: 1
         continue-on-error: false
