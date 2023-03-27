@@ -79,26 +79,30 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
-
+        continue-on-error: false
       - name: Terraform Plan
         working-directory: ${{ inputs.working-directory }}
         run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
-
+        continue-on-error: false
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
         run: tar czf artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz .terraform tfplan
-
+        continue-on-error: false
       - name: install sops
         run: |
           wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
           sudo dpkg -i sops_3.7.3_amd64.deb
+        continue-on-error: false
 
       - name: encrypt terraform plan
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
          sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+         pwd
+         ls -lah
+        continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
@@ -106,3 +110,4 @@ jobs:
         with:
           path: ${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
           retention-days: 1
+        continue-on-error: false
