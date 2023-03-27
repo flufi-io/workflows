@@ -63,7 +63,10 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v3
         with:
-          path: ${{ steps.outputs.artifact }}
+          name: ${{ steps.setup.outputs.artifact }}
+          run: |
+            ls -R
+            tar xzf ${{ steps.setup.outputs.artifact }}
         continue-on-error: false
 
       - name: install sops
