@@ -18,6 +18,19 @@ on:
       operation:
         description: 'The operation that was extracted from the comment'
         value: ${{ jobs.valid_operation.outputs.operation }}
+      pr_number:
+        description: 'The PR number that was extracted from the comment'
+        value: ${{ jobs.valid_operation.outputs.pr_number }}
+      repo:
+        description: 'The repo that was extracted from the comment'
+        value: ${{ jobs.valid_operation.outputs.repo }}
+      commit_sha:
+        description: 'The commit sha that was extracted from the comment'
+        value: ${{ jobs.valid_operation.outputs.commit_sha }}
+      artifact_path:
+        description: 'The path where the artifact is stored'
+        value: plan-${{ jobs.valid_operation.outputs.environment }}-${{ jobs.valid_operation.outputs.commit_sha }}.tar.gz
+
 
 jobs:
   valid_operation:
@@ -26,6 +39,9 @@ jobs:
       valid: ${{ steps.check_valid_comment.outputs.valid }}
       operation: ${{ steps.set_environment.outputs.operation }}
       environment: ${{ steps.set_environment.outputs.environment }}
+      pr_number: ${{ steps.get_pr.outputs.pr_number }}
+      repo: ${{ steps.get_pr.outputs.repo }}
+      commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
     steps:
       - name: Check if valid comment
         id: check_valid_comment
@@ -39,6 +55,7 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
+
       - name: Check if comment is from a Pull Request
         if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
         id: check_pr_comment
@@ -50,6 +67,7 @@ jobs:
           else
             echo "pr_comment=false" >> $GITHUB_OUTPUT
           fi
+
       - name: Extract environment and operation from comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: set_environment
@@ -57,5 +75,23 @@ jobs:
           comment="${{ inputs.comment_body }}"
           export environment=$(echo "$comment" | awk '{print $3}')
           export operation=$(echo "$comment" | awk '{print $2}')
+          
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT
+
+      - name: Get associated open pull request
+        id: get_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
+             | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
+
+          pr_number=$(echo "$pr_data" | jq '.number')
+          commit_sha=$(echo "$pr_data" | jq '.sha')
+          forked_repo=$(echo "$pr_data" | jq -r '.repo')
+          
+          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
+          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
+          echo "repo=$repo" >> $GITHUB_OUTPUT

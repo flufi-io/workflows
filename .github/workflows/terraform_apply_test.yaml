@@ -24,13 +24,14 @@ jobs:
       operation: ${{ needs.validate_comment.outputs.operation }}
       varsfile: example.tfvars
       working-directory: terraform
-      artifact_path: ${{ needs.validate_comment.outputs.artifact_path }}
 
-  download_plan:
-    runs-on: ubuntu-latest
-    needs: [ validate_comment, terraform_plan ]
-    steps:
-      - name: Download Terraform artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: terraform/${{needs.validate_comment.outputs.artifact_path}}
+  terraform_apply:
+    if: ${{ needs.validate_comment.outputs.operation }} == 'apply'
+    needs: [ validate_comment ]
+    uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
+    secrets: inherit
+    with:
+      working-directory: terraform
+      environment: ${{ needs.validate_comment.outputs.environment }}
+      operation: ${{ needs.validate_comment.outputs.operation }}
+      artifact_path: ${{needs.terraform_plan.outputs.artifact_path}}

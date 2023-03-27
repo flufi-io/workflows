@@ -9,6 +9,7 @@ env:
 jobs:
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    secrets: inherit
     with:
       valid_environments: development,staging,production
       comment_body: ${{ github.event.comment.body }}

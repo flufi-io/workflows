@@ -20,6 +20,18 @@ on:
         required: false
         default: '.'
         type: string
+      repo:
+        description: 'The repo that was extracted from the comment'
+        required: true
+        type: string
+      pr_number:
+        description: 'The PR number that was extracted from the comment'
+        required: true
+        type: string
+      commit_sha:
+        description: 'The commit sha that was extracted from the comment'
+        required: true
+        type: string
 
     outputs:
       artifact_path:
@@ -31,64 +43,45 @@ jobs:
   terraform_plan:
     runs-on: ubuntu-latest
     outputs:
-      commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
-      pr_number: ${{ steps.get_pr.outputs.pr_number }}
-      repo: ${{ steps.get_pr.outputs.repo }}
-      artifact_path: "${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz"
+      commit_sha: ${{ inputs.commit_sha }}
+      pr_number: ${{ inputs.pr_number }}
+      repo: ${{ inputs.repo }}
+      artifact_path: "${{ inputs.working-directory }}/artifacts-${{ inputs.commit_sha }}.tar.gz"
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.OIDC_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.4.2
           terraform_wrapper: false
 
-      - name: Get associated open pull request
-        id: get_pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-             | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
-          echo $pr_data
-          pr_number=$(echo "$pr_data" | jq '.number')
-          commit_sha=$(echo "$pr_data" | jq '.sha')
-          forked_repo=$(echo "$pr_data" | jq -r '.repo')
-          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "repo=$repo" >> $GITHUB_OUTPUT
-
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref:  refs/pull/${{ steps.get_pr.outputs.pr_number }}/head
-          repository: ${{ steps.get_pr.outputs.repo }}
-      - name: Display PR number and commit SHA
-        run: |
-          ls -lah
-          pwd
-          find . -name .sops.yaml 
-          echo "PR Number: ${{ steps.get_pr.outputs.pr_number }}"
-          echo "Commit SHA: ${{ steps.get_pr.outputs.commit_sha }}"
+          ref:  refs/pull/${{ inputs.pr_number }}/head
+          repository: ${{ inputs.repo }}
 
       - name: Terraform Init
         run: terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
+
       - name: Terraform Plan
         working-directory: ${{ inputs.working-directory }}
-        run: terraform plan -out=tfplan -var-file=${{ inputs.varsfile }} -input=false -no-color
+        run: terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
         continue-on-error: false
+
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz .terraform tfplan
+        run: tar czf artifacts-${{ inputs.commit_sha }}.tar.gz .terraform tfplan
         continue-on-error: false
+
       - name: install sops
         run: |
           wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
@@ -97,16 +90,14 @@ jobs:
 
       - name: encrypt terraform plan
         id: encrypt
-        working-directory: ${{ inputs.working-directory }}
         run: |
-         sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz
-         echo "artifact=${{ inputs.working-directory }}/artifacts-${{ steps.get_pr.outputs.commit_sha }}.tar.gz" >> $GITHUB_OUTPUT
+         sops -e -i ${{ inputs.working-directory }}/${{ inputs.artifact_path }}
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ steps.encrypt.outputs.artifact }}
+          path: ${{ inputs.working-directory }}/${{ inputs.artifact_path }}
           retention-days: 1
         continue-on-error: false
