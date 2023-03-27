@@ -52,6 +52,10 @@ jobs:
       repo: ${{ inputs.repo }}
       artifact_path: "${{ inputs.working-directory }}/artifacts-${{ inputs.commit_sha }}.tar.gz"
     steps:
+      - name: setup
+        id: setup
+        run: |
+          echo "artifact_path=${{ inputs.working-directory }}/${{ inputs.artifact_path }}" >> $GITHUB_ENV
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -83,7 +87,7 @@ jobs:
       - name: Save Terraform state and plan
         working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf artifacts-${{ inputs.commit_sha }}.tar.gz .terraform tfplan
+        run: tar czf ${{ inputs.artifact_path }} .terraform tfplan
         continue-on-error: false
 
       - name: install sops
@@ -95,13 +99,13 @@ jobs:
       - name: encrypt terraform plan
         id: encrypt
         run: |
-         sops -e -i ${{ inputs.working-directory }}/${{ inputs.artifact_path }}
+         sops -e -i ${{ steps.setup.outputs.artifact_path }}
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ inputs.working-directory }}/${{ inputs.artifact_path }}
+          path: ${{ steps.setup.outputs.artifact_path }}
           retention-days: 1
         continue-on-error: false
