@@ -99,5 +99,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: ${{ steps.setup.outputs.artifact }}
+          name: ${{ inputs.environment }}-${{ inputs.commit_sha }}
           retention-days: 1
         continue-on-error: false
