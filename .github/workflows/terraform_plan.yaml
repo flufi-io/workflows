@@ -47,6 +47,7 @@ jobs:
       - name: setup
         id: setup
         run: |
+          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -98,6 +99,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: ${{ steps.setup.outputs.artifact }}
-          name: ${{ inputs.artifact_name }}
+          name: ${{ steps.setup.outputs.artifact_name }}
           retention-days: 1
         continue-on-error: false
