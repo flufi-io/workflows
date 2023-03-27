@@ -22,7 +22,6 @@ jobs:
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
-      varsfile: example.tfvars
       working-directory: terraform
       artifact_name: ${{ needs.validate_comment.outputs.artifact_path }}
       pr_number: ${{ needs.validate_comment.outputs.pr_number }}

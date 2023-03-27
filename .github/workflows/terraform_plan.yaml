@@ -11,10 +11,10 @@ on:
         description: 'The operation that was extracted from the comment'
         required: true
         type: string
-      varsfile:
-        description: 'The path to the vars file'
-        required: true
-        type: string
+#      varsfile:
+#        description: 'The path to the vars file'
+#        required: true
+#        type: string
       working-directory:
         description: 'The path to the working directory'
         required: false
@@ -37,25 +37,18 @@ on:
         required: true
         type: string
 
-    outputs:
-      artifact_path:
-        description: 'The path where the artifact is stored'
-        value: ${{ jobs.terraform_plan.outputs.artifact_path }}
-
 
 jobs:
   terraform_plan:
     runs-on: ubuntu-latest
     outputs:
-      commit_sha: ${{ inputs.commit_sha }}
-      pr_number: ${{ inputs.pr_number }}
-      repo: ${{ inputs.repo }}
-      artifact_path: ${{ steps.setup.outputs.artifact_path }}
+        artifact: ${{ steps.setup.outputs.artifact }}
     steps:
       - name: setup
         id: setup
         run: |
-          echo "artifact_path=${{ inputs.working-directory }}/${{ inputs.artifact_path }}" >> $GITHUB_ENV
+          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_path }}" >> $GITHUB_OUTPUTS
+
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -85,9 +78,8 @@ jobs:
         continue-on-error: false
 
       - name: Save Terraform state and plan
-        working-directory: ${{ inputs.working-directory }}
         id: save-artifact
-        run: tar czf ${{ inputs.artifact_path }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
+        run: tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
         continue-on-error: false
 
       - name: install sops
@@ -99,13 +91,13 @@ jobs:
       - name: encrypt terraform plan
         id: encrypt
         run: |
-         sops -e -i ${{ steps.setup.outputs.artifact_path }}
+         sops -e -i ${{ steps.setup.outputs.artifact }}
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ steps.setup.outputs.artifact_path }}
+          path: ${{ steps.setup.outputs.artifact }}
           retention-days: 1
         continue-on-error: false
