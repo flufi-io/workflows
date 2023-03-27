@@ -31,5 +31,5 @@ jobs:
       - name: Download Terraform artifacts
         uses: actions/download-artifact@v3
         with:
-          name: ${{needs.terraform_plan.outputs.name}}
-          path: ${{needs.terraform_plan.outputs.path}}
+          name: ${{needs.terraform_plan.outputs.artifact_name}}
+          path: ${{needs.terraform_plan.outputs.artifact_path}}

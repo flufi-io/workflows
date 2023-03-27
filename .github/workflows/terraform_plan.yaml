@@ -21,14 +21,13 @@ on:
         default: '.'
         type: string
 
-
     outputs:
       artifact_name:
         description: 'The artifact that contains plan and cache'
-        value: terraform-artifacts-${{ jobs.terraform_plan.outputs.commit_sha }}.tar.gz
+        value: ${{ jobs.terraform_plan.outputs.artifact_name }}
       artifact_path:
         description: 'The path where the artifact is stored'
-        value: artifacts-${{ jobs.terraform_plan.outputs.commit_sha  }}.tar.gz
+        value: ${{ jobs.terraform_plan.outputs.artifact_path }}
 
 
 jobs:
@@ -38,6 +37,8 @@ jobs:
       commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
       pr_number: ${{ steps.get_pr.outputs.pr_number }}
       repo: ${{ steps.get_pr.outputs.repo }}
+      artifact_name: terraform-artifacts-${{ steps.get_pr.outputs.commit_sha  }}
+      artifact_path: artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -101,8 +102,7 @@ jobs:
         id: encrypt
         working-directory: ${{ inputs.working-directory }}
         run: |
-          aws s3 ls
-          SOPS_KMS_ARN=arn:aws:kms:us-east-1:732758452413:key/bcc8401b-38ff-44d7-8355-8f9869d6ba61 sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
+         sops -e -i artifacts-${{ steps.get_pr.outputs.commit_sha  }}.tar.gz
 
       - name: Upload Terraform artifacts
         id: upload-artifact
