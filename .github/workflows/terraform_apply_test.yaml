@@ -22,10 +22,9 @@ jobs:
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
-      varsfile: example.tfvars
       working-directory: terraform
-      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
       artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
       commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
       repo: ${{ needs.validate_comment.outputs.repo }}
 
@@ -35,11 +34,11 @@ jobs:
     uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
     secrets: inherit
     with:
-      working-directory: terraform
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
-      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
+      working-directory: terraform
       artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
       commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
       repo: ${{ needs.validate_comment.outputs.repo }}
 

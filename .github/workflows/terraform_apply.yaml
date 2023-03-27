@@ -11,6 +11,10 @@ on:
         description: 'The operation that was extracted from the comment'
         required: true
         type: string
+      #      varsfile:
+      #        description: 'The path to the vars file'
+      #        required: true
+      #        type: string
       working-directory:
         description: 'The path to the working directory'
         required: false
@@ -29,18 +33,20 @@ on:
         required: true
         type: string
       artifact_name:
-        description: 'The path where the artifact is stored'
+        description: 'The name of the artifact'
         required: true
         type: string
-
 jobs:
   terraform_apply:
     runs-on: ubuntu-latest
+    outputs:
+      artifact: ${{ steps.setup.outputs.artifact }}
     steps:
       - name: setup
         id: setup
         run: |
-          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_ENV
+          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -69,12 +75,17 @@ jobs:
 
       - name: decrypt plan
         run: |
-          sops -d -i ${{ steps.outputs.artifact }}
+
+          sops -d -i ${{ steps.setup.outputs.artifact }}
+          pwd
+          ls -lah
+          cd terraform 
+          ls -lah
         continue-on-error: false
 
       - name: extract plan
         run: |
-          tar xzf $${{ steps.outputs.artifact }}
+          tar xzf ${{ steps.setup.outputs.artifact }}
         continue-on-error: false
 
       - name: terraform apply
