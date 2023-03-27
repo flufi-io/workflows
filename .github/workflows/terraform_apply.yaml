@@ -85,6 +85,7 @@ jobs:
         run: |
           tar xzf ${{ steps.setup.outputs.artifact_name }} 
           rm ${{ steps.setup.outputs.artifact_name }}
+          ls -R
         continue-on-error: false
 
       - name: terraform apply
