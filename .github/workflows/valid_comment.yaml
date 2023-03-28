@@ -47,6 +47,10 @@ jobs:
         id: check_valid_comment
         run: |
           comment="${{ inputs.comment_body }}"
+          if [[ "$comment" =~ [[:space:]] ]]; then
+            echo "Invalid comment: whitespaces not allowed"
+            exit 1
+          fi
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
