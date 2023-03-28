@@ -61,21 +61,31 @@ jobs:
 
       - name: Check for code owner approval
         id: check_approval
+
         run: |
           pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
           code_owner_approval=false
+          # Fetch the list of code owners
+          code_owners=$(curl --silent --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ inputs.repo }}/contents/.github/CODEOWNERS" | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
+
           for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
             review="$(echo ${row} | base64 --decode)"
             state=$(echo "${review}" | jq -r '.state')
             user_login=$(echo "${review}" | jq -r '.user.login')
 
             if [ "${state}" == "APPROVED" ]; then
-              if curl --silent --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ inputs.repo }}/pulls/${{ inputs.pr_number }}/requested_reviewers" | jq -e --arg user_login "$user_login" '.users[] | select(.login == $user_login) | .login' > /dev/null; then
+              if echo "${code_owners}" | grep -wq "$user_login"; then
                 code_owner_approval=true
                 break
               fi
             fi
           done
+
+          # Check if the user who made the comment is a code owner
+          commenter="${{ github.event.comment.user.login }}"
+          if echo "${code_owners}" | grep -wq "$commenter"; then
+            code_owner_approval=true
+          fi
 
           if [ "${code_owner_approval}" == "false" ]; then
             echo "error: PR not approved by a code owner" >&2
