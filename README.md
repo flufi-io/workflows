@@ -32,3 +32,10 @@ This is a test workflow that demonstrates how to use the valid_comment.yaml work
 
 5. Trigger the workflow by adding a comment containing `terraform plan <environment>` or `terraform apply <environment>`
    to a pull request, where `<environment>` is one of the valid environments specified in the VALID_ENVIRONMENTS variable.
+
+
+## [Wiki](https://github.com/flufi-io/workflows/wiki)
+Please refer to the [wiki](https://github.com/flufi-io/workflows/wiki) page for more detailed documentation on the usage and configuration of these workflows.
+
+
+
