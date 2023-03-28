@@ -143,25 +143,6 @@ jobs:
           commit_timestamp=$(echo "$commit_data" | jq -r ".commit.committer.date")
           echo "commit_timestamp='$commit_timestamp'" >>  $GITHUB_OUTPUT
 
-      - name: Get Artifact ID
-        id: get-artifact-id
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          artifact_name="${{ steps.setup.outputs.artifact_name }}"
-          commit_timestamp="${{ steps.get-commit-timestamp.outputs.commit_timestamp }}"
-          artifact_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos
-          echo "artifact_id='$artifact_id'" >> $GITHUB_OUTPUT
-
-      - name: Delete Terraform artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          artifact_id=${{ steps.get-artifact-id.outputs.artifact_id }}
-          echo "Deleting artifact with ID: $artifact_id"
-          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
-        continue-on-error: false
-
       - name: install sops
         id: install-sops
         run: |
