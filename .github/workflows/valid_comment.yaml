@@ -64,7 +64,6 @@ jobs:
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
 
-
       - name: Check if comment is from a Pull Request
         if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
         id: check_pr_comment
