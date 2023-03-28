@@ -161,10 +161,11 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
 
       - name: Post Terraform apply output as PR comment
+        working-directory: ${{ inputs.working-directory }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          apply_output=$(cat ${{ inputs.working-directory }}/apply_output.txt)
+          apply_output=$(cat apply_output.txt)
           max_comment_size=65535
           
           # Split the apply output into smaller chunks
