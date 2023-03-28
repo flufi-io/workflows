@@ -131,7 +131,6 @@ jobs:
         with:
           search_artifacts: true
           name: ${{ steps.setup.outputs.artifact_name }}
-        continue-on-error: true
 
       - name: Add PR comment if Download Terraform artifacts fails
         if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}
