@@ -81,6 +81,7 @@ jobs:
             echo "error: PR not approved by a code owner" >&2
             exit 1
           fi
+
       - name: Validate that the plan has been approved
         id: validate_plan_approval
         run: |
@@ -91,6 +92,7 @@ jobs:
             fi
           fi
         continue-on-error: false
+
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
