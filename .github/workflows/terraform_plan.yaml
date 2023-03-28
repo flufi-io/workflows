@@ -79,6 +79,14 @@ jobs:
         run: terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
         continue-on-error: false
 
+      - name: Post Terraform plan output as PR comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          plan_output=$(cat ${{ inputs.working-directory }}/tfplan)
+          comment_payload=$(jq -n --arg body "$plan_output" '{"body": $body}')
+          curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+
       - name: Save Terraform state and plan
         id: save-artifact
         run: tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
