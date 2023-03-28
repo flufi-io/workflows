@@ -141,7 +141,7 @@ jobs:
           artifact_name="${{ steps.setup.outputs.artifact_name }}"
           artifact_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts")
           artifact_id=$(echo "$artifact_data" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .id")
-          echo "artifact_id=$artifact_id" >> $GITHUB_OUTPUT
+          echo "artifact_id='$artifact_id'" >> $GITHUB_OUTPUT
 
       - name: Delete Terraform artifacts
         env:
