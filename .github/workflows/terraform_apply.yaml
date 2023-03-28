@@ -137,7 +137,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          comment_body="error: Failed to download Terraform artifacts. Please run a `terraform plan` before running `terraform apply`."
+          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
           comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
           curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
           exit 1
