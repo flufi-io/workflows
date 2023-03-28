@@ -133,6 +133,16 @@ jobs:
           name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
+      - name: Add PR comment if Download Terraform artifacts fails
+        if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          comment_body="error: Failed to download Terraform artifacts. Please run a `terraform plan` before running `terraform apply`."
+          comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+          curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+
+
       - name: Get and Delete Artifacts
         id: get-and-delete-artifacts
         env:
@@ -147,7 +157,6 @@ jobs:
             curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
           done
         continue-on-error: false
-
 
       - name: install sops
         id: install-sops
