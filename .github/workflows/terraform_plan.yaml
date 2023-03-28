@@ -76,14 +76,18 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ inputs.working-directory }}
-        run: terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
+        run: |
+          terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
+          terraform show -no-color tfplan > plan_output.txt
         continue-on-error: false
 
+      # 'Post Terraform plan output as PR comment' step
       - name: Post Terraform plan output as PR comment
+        id: terraform-plan-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          plan_output=$(cat ${{ inputs.working-directory }}/tfplan)
+          plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           comment_payload=$(jq -n --arg body "$plan_output" '{"body": $body}')
           curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
 

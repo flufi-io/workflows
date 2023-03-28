@@ -153,6 +153,14 @@ jobs:
         id: terraform_apply
         run: |
           terraform init -reconfigure -upgrade
-          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan
+          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
+
+      - name: Post Terraform apply output as PR comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          apply_output=$(cat ${{ inputs.working-directory }}/apply_output.txt)
+          comment_payload=$(jq -n --arg body "$apply_output" '{"body": $body}')
+          curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
