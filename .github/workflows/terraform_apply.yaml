@@ -133,14 +133,22 @@ jobs:
           name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
+      - name: Get artifact ID
+        id: get_artifact_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          artifact_name="${{ steps.setup.outputs.artifact_name }}"
+          artifact_id=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts" | jq ".artifacts[] | select(.name==\"$artifact_name\") | .id")
+          echo "artifact_id=$artifact_id" >> $GITHUB_ENV
+
       - name: Delete Terraform artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          artifact_id=${{ inputs.artifact_name }}
+          artifact_id=${{ steps.get_artifact_id.outputs.artifact_id }}
           echo "Deleting artifact with ID: $artifact_id"
-          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
-        continue-on-error: false
+          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H  "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
 
       - name: install sops
         id: install-sops
