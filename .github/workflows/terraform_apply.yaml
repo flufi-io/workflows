@@ -94,6 +94,7 @@ jobs:
             curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
             exit 1
           fi
+          echo "code_owner_approval=$code_owner_approval" >> $GITHUB_OUTPUT
 
       - name: Validate that the plan has been approved
         id: validate_plan_approval
