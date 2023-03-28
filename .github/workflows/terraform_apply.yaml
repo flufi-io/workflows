@@ -68,12 +68,12 @@ jobs:
           code_owner_approval=false
           # Fetch the list of code owners
           code_owners=$(curl --silent --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ inputs.repo }}/contents/.github/CODEOWNERS" | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
-      
+
           for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
             review="$(echo ${row} | base64 --decode)"
             state=$(echo "${review}" | jq -r '.state')
             user_login=$(echo "${review}" | jq -r '.user.login')
-      
+
             if [ "${state}" == "APPROVED" ]; then
               if echo "${code_owners}" | grep -wq "$user_login"; then
                 code_owner_approval=true
@@ -81,13 +81,13 @@ jobs:
               fi
             fi
           done
-      
+
           # Check if the user who made the comment is a code owner
           commenter="${{ github.event.comment.user.login }}"
           if echo "${code_owners}" | grep -wq "$commenter"; then
             code_owner_approval=true
           fi
-      
+
           if [ "${code_owner_approval}" == "false" ]; then
             comment_body="error: PR not approved by a code owner. A code owner approval is required to trigger 'terraform apply'."
             comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
@@ -133,6 +133,14 @@ jobs:
           name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
+      - name: Delete Terraform artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          artifact_id=${{ steps.download-artifact.outputs.id }}
+          echo "Deleting artifact with ID: $artifact_id"
+          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
+        continue-on-error: false
       - name: install sops
         id: install-sops
         run: |
@@ -170,7 +178,7 @@ jobs:
           ls -R
           apply_output=$(cat apply_output.txt)
           max_comment_size=65535
-          
+
           # Split the apply output into smaller chunks
           split_output=$(echo "$apply_output" | awk -v size="$max_comment_size" '{
             printf("%s%s",$0,RT)
@@ -179,7 +187,7 @@ jobs:
               $0=$0
             }
           }')
-          
+
           for chunk in "${split_output[@]}"; do
             comment_payload=$(jq -n --arg body "$chunk" '{"body": $body}')
             curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
