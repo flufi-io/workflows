@@ -157,6 +157,7 @@ jobs:
         run: |
           terraform init -reconfigure -upgrade
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
+          ls -R
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
@@ -165,6 +166,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ls -R
           apply_output=$(cat apply_output.txt)
           max_comment_size=65535
           
