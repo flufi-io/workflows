@@ -133,17 +133,21 @@ jobs:
           name: ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
 
-      - name: Get Artifact ID
-        id: get-artifact-id
+      - name: Get and Delete Artifacts
+        id: get-and-delete-artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           artifact_name="${{ steps.setup.outputs.artifact_name }}"
           artifact_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts")
-          artifact_id=$(echo "$artifact_data" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .id")
-          echo "Deleting artifact with ID: $artifact_id"
-          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
+          artifact_ids=$(echo "$artifact_data" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .id")
+
+          for artifact_id in $artifact_ids; do
+            echo "Deleting artifact with ID: $artifact_id"
+            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
+          done
         continue-on-error: false
+
 
       - name: install sops
         id: install-sops
