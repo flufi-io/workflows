@@ -41,4 +41,3 @@ jobs:
       pr_number: ${{ needs.validate_comment.outputs.pr_number }}
       commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
       repo: ${{ needs.validate_comment.outputs.repo }}
-
