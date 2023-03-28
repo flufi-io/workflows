@@ -47,8 +47,12 @@ jobs:
         id: check_valid_comment
         run: |
           comment="${{ inputs.comment_body }}"
-          if [[ "$comment" =~ [[:space:]] ]]; then
-            echo "Invalid comment: whitespaces not allowed"
+          if [[ "$comment" =~ ^\s ]]; then
+            echo "Invalid comment: comment cannot start with whitespace"
+            exit 1
+          fi
+          if [[ "$comment" =~ [^[:alnum:][:space:]\.-]+$ ]]; then
+            echo "Invalid comment: comment can only end with alphanumeric characters, whitespace, '.', or '-'"
             exit 1
           fi
           num_words=$(echo "$comment" | wc -w)
@@ -59,6 +63,7 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
+
 
       - name: Check if comment is from a Pull Request
         if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
