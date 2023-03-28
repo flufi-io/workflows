@@ -137,10 +137,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          artifact_id=${{ steps.setup.outputs.artifact_name }}
+          artifact_id=${{ inputs.artifact_name }}
           echo "Deleting artifact with ID: $artifact_id"
           curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
         continue-on-error: false
+
       - name: install sops
         id: install-sops
         run: |
