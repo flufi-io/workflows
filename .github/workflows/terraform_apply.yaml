@@ -49,6 +49,48 @@ jobs:
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
 
+      - name: Fetch PR reviews
+        id: fetch_pr_reviews
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_reviews=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ inputs.repo }}/pulls/${{ inputs.pr_number }}/reviews" | jq '.')
+
+          echo "pr_reviews=$pr_reviews" >> $GITHUB_OUTPUT
+
+      - name: Check for code owner approval
+        id: check_approval
+        run: |
+          pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
+          code_owner_approval=false
+          for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
+            review="$(echo ${row} | base64 --decode)"
+            state=$(echo "${review}" | jq -r '.state')
+            user_login=$(echo "${review}" | jq -r '.user.login')
+
+            if [ "${state}" == "APPROVED" ]; then
+              if curl --silent --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ inputs.repo }}/pulls/${{ inputs.pr_number }}/requested_reviewers" | jq -e --arg user_login "$user_login" '.users[] | select(.login == $user_login) | .login' > /dev/null; then
+                code_owner_approval=true
+                break
+              fi
+            fi
+          done
+
+          if [ "${code_owner_approval}" == "false" ]; then
+            echo "error: PR not approved by a code owner" >&2
+            exit 1
+          fi
+      - name: Validate that the plan has been approved
+        id: validate_plan_approval
+        run: |
+          if [ "${{ inputs.operation }}" == "apply" ]; then
+            if [ "${{ steps.check_approval.outputs.code_owner_approval }}" == "false" ]; then
+              echo "error: PR not approved by a code owner" >&2
+              exit 1
+            fi
+          fi
+        continue-on-error: false
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -95,6 +137,7 @@ jobs:
         continue-on-error: false
 
       - name: terraform apply
+        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
           terraform init -reconfigure -upgrade

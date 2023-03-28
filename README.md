@@ -36,6 +36,3 @@ This is a test workflow that demonstrates how to use the valid_comment.yaml work
 
 ## [Wiki](https://github.com/flufi-io/workflows/wiki)
 Please refer to the [wiki](https://github.com/flufi-io/workflows/wiki) page for more detailed documentation on the usage and configuration of these workflows.
-
-
-
