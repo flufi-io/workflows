@@ -30,12 +30,11 @@ jobs:
         run: |
           pr_number="${{ github.event.number }}"
           valid_commands="Valid commands for this repository are:\n\n"
-          valid_commands+="\`\`\`\n"
           for environment in $(echo "${{ steps.fetch-environments.outputs.environments }}" | tr ',' ' '); do
-            valid_commands+="terraform plan ${environment}\n"
-            valid_commands+="terraform apply ${environment}\n"
+            valid_commands+="\`terraform plan ${environment}\`\n"
+            valid_commands+="\`terraform apply ${environment}\`\n"
           done
-          valid_commands+="\`\`\`\n\n"
+          valid_commands+="\nAvailable environments: ${{ steps.fetch-environments.outputs.environments }}\n"
 
           comment_data='{"body": "'"${valid_commands//\"/\\\"}"'"}'
           curl --request POST \
