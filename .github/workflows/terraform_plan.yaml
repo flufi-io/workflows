@@ -42,7 +42,7 @@ on:
         default: ''
 
     secrets:
-      GITHUB_TOKEN:
+      GH_TOKEN:
         required: true
       OIDC_ROLE:
         required: true
@@ -97,7 +97,7 @@ jobs:
       - name: Post Terraform plan output as PR comment
         id: terraform-plan-comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           max_comment_size=65535

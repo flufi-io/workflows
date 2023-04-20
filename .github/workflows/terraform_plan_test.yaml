@@ -27,7 +27,7 @@ jobs:
       repo: ${{ needs.validate_comment.outputs.repo }}
       terraform_version: 1.4.2 # Optional: You can omit this line to use the latest version.
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
