@@ -1,4 +1,4 @@
-name: Terraform Plan
+name: terraform plan
 
 on:
   workflow_call:
@@ -36,7 +36,6 @@ on:
         description: 'The name of the artifact'
         required: true
         type: string
-
       terraform_version:
         required: false
         type: string

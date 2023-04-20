@@ -1,4 +1,4 @@
-name: Validate if comment is valid
+name: terraform command validation
 on:
   workflow_call:
     inputs:
@@ -45,7 +45,7 @@ jobs:
     steps:
 
       - name: Check if comment is from a Pull Request
-        if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
+
         id: check_pr_comment
         run: |
           issue_url="${{ github.event.issue.url }}"
@@ -57,6 +57,7 @@ jobs:
           fi
 
       - name: Check if valid comment
+        if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_comment
         run: |
           comment="${{ inputs.comment_body }}"

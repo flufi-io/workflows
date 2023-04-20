@@ -1,4 +1,4 @@
-name: terraform
+name: terraform command validation test
 on:
   issue_comment:
     types: [ created ]
