@@ -1,5 +1,5 @@
 # GitHub Workflows
-This repository contains GitHub Actions workflows for automating Terraform operations (plan and apply) through comments on pull requests.
+This repository contains GitHub Actions workflows of Flufi LLC.
 
 ## Workflows
 ### terraform_apply.yaml
@@ -14,11 +14,17 @@ This workflow is responsible for running terraform plan when a comment is added 
 ### terraform_plan_test.yaml
 This is a test workflow that demonstrates how to use the terraform_plan.yaml workflow in a repository.
 
-### valid_comment.yaml
+### valid_tf_command.yaml
 This workflow is responsible for validating the comment that triggered the workflow, extracting relevant information from the comment, and determining if it should trigger a terraform plan or terraform apply operation.
 
-### valid_comment_test.yaml
+### valid_tf_command_test.yaml
 This is a test workflow that demonstrates how to use the valid_comment.yaml workflow in a repository.
+
+### post_valid_tf_commands.yaml
+This workflow is responsible for posting in a new pull request the valid terraform commands.
+
+### post_valid_tf_commands_test.yaml
+This is a test workflow that demonstrates how to use the post_valid_tf_commands.yaml workflow in a repository.
 
 ## How to use
 1. Add the workflows to your repository.

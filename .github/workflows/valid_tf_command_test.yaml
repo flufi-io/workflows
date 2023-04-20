@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   validate_command:
-    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
+    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
     secrets: inherit
     with:
       comment_body: ${{ github.event.comment.body }}
