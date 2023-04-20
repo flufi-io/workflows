@@ -3,15 +3,13 @@ on:
   issue_comment:
     types: [ created ]
 permissions: write-all
-env:
-  VALID_ENVIRONMENTS: ${{ join(github.event.repository.environments, ',') }}
 
 jobs:
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     secrets: inherit
     with:
-      valid_environments: ${{ env.VALID_ENVIRONMENTS }}
+      valid_environments: ${{ join(github.event.repository.environments, ',') }}
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:
