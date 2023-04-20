@@ -118,5 +118,3 @@ jobs:
 
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT
-
-
