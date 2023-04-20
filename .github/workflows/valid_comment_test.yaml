@@ -9,7 +9,7 @@ jobs:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     secrets: inherit
     with:
-      valid_environments: ${{ join(github.event.repository.environments, ',') }}
+      valid_environments: ${{ join(github.event.repository.environments.*.name, ',') }}
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:
