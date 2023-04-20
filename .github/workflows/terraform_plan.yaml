@@ -51,18 +51,6 @@ jobs:
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
 
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.OIDC_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.4.2
-          terraform_wrapper: false
-
       - name: checkout
         uses: actions/checkout@v3
         with:

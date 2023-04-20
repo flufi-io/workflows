@@ -43,6 +43,19 @@ jobs:
       repo: ${{ steps.get_pr.outputs.repo }}
       commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
     steps:
+
+      - name: Check if comment is from a Pull Request
+        if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
+        id: check_pr_comment
+        run: |
+          issue_url="${{ github.event.issue.url }}"
+          pr_url=$(gh api "$issue_url" | jq -r '.pull_request.url')
+          if [ "$pr_url" != "null" ]; then
+            echo "pr_comment=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr_comment=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check if valid comment
         id: check_valid_comment
         run: |
@@ -69,19 +82,6 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Check if comment is from a Pull Request
-        if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
-        id: check_pr_comment
-        run: |
-          issue_url="${{ github.event.issue.url }}"
-          pr_url=$(gh api "$issue_url" | jq -r '.pull_request.url')
-          if [ "$pr_url" != "null" ]; then
-            echo "pr_comment=true" >> $GITHUB_OUTPUT
-          else
-            echo "pr_comment=false" >> $GITHUB_OUTPUT
-          fi
-
 
       - name: Extract environment and operation from comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
