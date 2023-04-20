@@ -78,7 +78,12 @@ jobs:
         run: |
           pr_number="${{ steps.get_pr.outputs.pr_number }}"
           link="https://github.com/${{ steps.get_pr.outputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-#          gh pr comment $pr_number -b "Workflow run: $link"
+          curl --request POST \
+               --url https://api.github.com/repos/${{ steps.get_pr.outputs.repo }}/issues/${pr_number}/comments \
+               --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+               --header 'content-type: application/json' \
+               --data "{\"body\":\"Workflow run: ${link}\"}"
+
 
       - name: Check if valid comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
