@@ -6,7 +6,6 @@ permissions: write-all
 env:
   VALID_ENVIRONMENTS: development,staging,production
 
-
 jobs:
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
@@ -17,31 +16,21 @@ jobs:
   terraform_plan:
     if: ${{ needs.validate_comment.outputs.operation == 'plan' }}
     needs: [ validate_comment ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.OIDC_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.4.2
-          terraform_wrapper: false
-
-      - name: Run Terraform Plan
-        uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
-        secrets: inherit
-        with:
-          environment: ${{ needs.validate_comment.outputs.environment }}
-          operation: ${{ needs.validate_comment.outputs.operation }}
-          working-directory: terraform
-          artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
-          pr_number: ${{ needs.validate_comment.outputs.pr_number }}
-          commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
-          repo: ${{ needs.validate_comment.outputs.repo }}
+    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    with:
+      environment: ${{ needs.validate_comment.outputs.environment }}
+      operation: ${{ needs.validate_comment.outputs.operation }}
+      working-directory: terraform
+      artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
+      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
+      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
+      repo: ${{ needs.validate_comment.outputs.repo }}
+      terraform_version: 1.4.2 # Optional: You can omit this line to use the latest version
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_TOKEN: ${{ secrets.TF_TOKEN }}
 
 
 

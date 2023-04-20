@@ -37,7 +37,20 @@ on:
         required: true
         type: string
 
+      terraform_version:
+        required: false
+        type: string
+        default: ''
 
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      OIDC_ROLE:
+        required: true
+      AWS_REGION:
+        required: true
+      TF_TOKEN:
+        required: false
 jobs:
   terraform_plan:
     if: ${{ inputs.operation == 'plan' }}
@@ -50,6 +63,19 @@ jobs:
         run: |
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
 
       - name: checkout
         uses: actions/checkout@v3
@@ -76,7 +102,7 @@ jobs:
         run: |
           plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           max_comment_size=65535
-          
+
           # Split the plan output into smaller chunks
           split_output=$(echo "$plan_output" | awk -v size="$max_comment_size" '{
             printf("%s%s",$0,RT)
@@ -85,7 +111,7 @@ jobs:
               $0=$0
             }
           }')
-          
+
           for chunk in "${split_output[@]}"; do
             gh pr comment ${{ inputs.pr_number }} --body "$chunk"
           done
