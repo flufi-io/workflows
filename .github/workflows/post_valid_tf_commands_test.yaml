@@ -1,0 +1,14 @@
+name: Post valid Terraform commands on PR
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  post_commands:
+    uses:  flufi-io/workflows/.github/workflows/post_valid_commands.yaml@main
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
