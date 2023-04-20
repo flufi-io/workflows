@@ -11,7 +11,7 @@ jobs:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     secrets: inherit
     with:
-      valid_environments: development,staging,production
+      valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:

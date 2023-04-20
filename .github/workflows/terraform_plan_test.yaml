@@ -10,7 +10,7 @@ jobs:
   validate_comment:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
-      valid_environments: development,staging,production
+      valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
