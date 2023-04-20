@@ -20,5 +20,5 @@ jobs:
     steps:
       - name: Print environment and operation
         run: |
-          [[ "${{ github.event.comment.body }}" == "terraform ${{needs.validate_comment.outputs.operation}} ${{needs.validate_comment.outputs.environment}}" ]]
+          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.validate_comment.outputs.operation}} ${{needs.validate_comment.outputs.environment}}" ]]
         if: ${{ success() }}
