@@ -54,10 +54,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pr_reviews=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ inputs.repo }}/pulls/${{ inputs.pr_number }}/reviews" | jq '.')
-
+          pr_reviews=$(gh pr review list -R "${{ inputs.repo }}" -p "${{ inputs.pr_number }}" | jq '.')
           echo "pr_reviews=$pr_reviews" >> $GITHUB_OUTPUT
+
 
       - name: Check for code owner approval
         id: check_approval
@@ -67,13 +66,13 @@ jobs:
           pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
           code_owner_approval=false
           # Fetch the list of code owners
-          code_owners=$(curl --silent --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ inputs.repo }}/contents/.github/CODEOWNERS" | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
-
+          code_owners=$(gh api repos/${{ inputs.repo }}/contents/.github/CODEOWNERS | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
+          
           for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
             review="$(echo ${row} | base64 --decode)"
             state=$(echo "${review}" | jq -r '.state')
             user_login=$(echo "${review}" | jq -r '.user.login')
-
+          
             if [ "${state}" == "APPROVED" ]; then
               if echo "${code_owners}" | grep -wq "$user_login"; then
                 code_owner_approval=true
@@ -81,20 +80,21 @@ jobs:
               fi
             fi
           done
-
+          
           # Check if the user who made the comment is a code owner
           commenter="${{ github.event.comment.user.login }}"
           if echo "${code_owners}" | grep -wq "$commenter"; then
             code_owner_approval=true
           fi
-
+          
           if [ "${code_owner_approval}" == "false" ]; then
             comment_body="error: PR not approved by a code owner. A code owner approval is required to trigger 'terraform apply'."
             comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-            curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+            gh api repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments -H "Content-Type: application/json" -d "$comment_payload"
             exit 1
           fi
           echo "code_owner_approval=$code_owner_approval" >> $GITHUB_OUTPUT
+
 
       - name: Validate that the plan has been approved
         id: validate_plan_approval
@@ -139,7 +139,7 @@ jobs:
         run: |
           comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
           comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-          curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+          gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
           exit 1
         continue-on-error: false
 
@@ -149,14 +149,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           artifact_name="${{ steps.setup.outputs.artifact_name }}"
-          artifact_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts")
+          artifact_data=$(gh api repos/${{ inputs.repo }}/actions/artifacts)
           artifact_ids=$(echo "$artifact_data" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .id")
-
+          
           for artifact_id in $artifact_ids; do
             echo "Deleting artifact with ID: $artifact_id"
-            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ inputs.repo }}/actions/artifacts/$artifact_id"
+            gh api repos/${{ inputs.repo }}/actions/artifacts/$artifact_id -X DELETE
           done
         continue-on-error: false
+
 
       - name: install sops
         id: install-sops
@@ -195,7 +196,7 @@ jobs:
           ls -R
           apply_output=$(cat apply_output.txt)
           max_comment_size=65535
-
+          
           # Split the apply output into smaller chunks
           split_output=$(echo "$apply_output" | awk -v size="$max_comment_size" '{
             printf("%s%s",$0,RT)
@@ -204,8 +205,9 @@ jobs:
               $0=$0
             }
           }')
-
+          
           for chunk in "${split_output[@]}"; do
             comment_payload=$(jq -n --arg body "$chunk" '{"body": $body}')
-            curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+            gh issue comment "${{ inputs.pr_number }}" -R "${{ inputs.repo }}" -b "$chunk"
           done
+

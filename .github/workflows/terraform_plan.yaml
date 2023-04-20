@@ -88,7 +88,7 @@ jobs:
         run: |
           plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           max_comment_size=65535
-
+          
           # Split the plan output into smaller chunks
           split_output=$(echo "$plan_output" | awk -v size="$max_comment_size" '{
             printf("%s%s",$0,RT)
@@ -97,11 +97,11 @@ jobs:
               $0=$0
             }
           }')
-
+          
           for chunk in "${split_output[@]}"; do
-            comment_payload=$(jq -n --arg body "$chunk" '{"body": $body}')
-            curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$comment_payload" "https://api.github.com/repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments"
+            gh pr comment ${{ inputs.pr_number }} --body "$chunk"
           done
+
 
       - name: Save Terraform state and plan
         id: save-artifact
