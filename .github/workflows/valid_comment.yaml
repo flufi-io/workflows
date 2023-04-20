@@ -14,22 +14,22 @@ on:
     outputs:
       environment:
         description: 'The environment that was extracted from the comment'
-        value: ${{ jobs.valid_operation.outputs.environment }}
+        value: ${{ jobs.terraform_command_validation.outputs.environment }}
       operation:
         description: 'The operation that was extracted from the comment'
-        value: ${{ jobs.valid_operation.outputs.operation }}
+        value: ${{ jobs.terraform_command_validation.outputs.operation }}
       pr_number:
         description: 'The PR number that was extracted from the comment'
-        value: ${{ jobs.valid_operation.outputs.pr_number }}
+        value: ${{ jobs.terraform_command_validation.outputs.pr_number }}
       repo:
         description: 'The repo that was extracted from the comment'
-        value: ${{ jobs.valid_operation.outputs.repo }}
+        value: ${{ jobs.terraform_command_validation.outputs.repo }}
       commit_sha:
         description: 'The commit sha that was extracted from the comment'
-        value: ${{ jobs.valid_operation.outputs.commit_sha }}
+        value: ${{ jobs.terraform_command_validation.outputs.commit_sha }}
       artifact_name:
         description: 'The path where the artifact is stored'
-        value: plan-${{ jobs.valid_operation.outputs.environment }}-${{ jobs.valid_operation.outputs.commit_sha }}.tar.gz
+        value: plan-${{ jobs.terraform_command_validation.outputs.environment }}-${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz
 
 
 jobs:

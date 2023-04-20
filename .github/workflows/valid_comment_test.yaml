@@ -23,7 +23,7 @@ jobs:
           echo "environments=$env_list" >> $GITHUB_ENV
           echo "environments=$env_list" >> $GITHUB_OUTPUT
 
-  validate_comment:
+  validate_command:
     needs: [get_environments]
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     secrets: inherit
@@ -32,10 +32,10 @@ jobs:
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:
-    needs: [validate_comment]
+    needs: [validate_command]
     runs-on: ubuntu-latest
     steps:
       - name: Print environment and operation
         run: |
-          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.validate_comment.outputs.operation}} ${{needs.validate_comment.outputs.environment}}" ]]
+          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.validate_command.outputs.operation}} ${{needs.validate_command.outputs.environment}}" ]]
         if: ${{ success() }}
