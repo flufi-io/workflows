@@ -18,7 +18,6 @@ jobs:
     if: ${{ needs.validate_comment.outputs.operation == 'plan' }}
     needs: [ validate_comment ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
-    secrets: inherit
     with:
       environment: ${{ needs.validate_comment.outputs.environment }}
       operation: ${{ needs.validate_comment.outputs.operation }}
@@ -27,6 +26,12 @@ jobs:
       pr_number: ${{ needs.validate_comment.outputs.pr_number }}
       commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
       repo: ${{ needs.validate_comment.outputs.repo }}
+      terraform_version: 1.4.2 # Optional: You can omit this line to use the latest version.
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
 
   terraform_apply:
     needs: [validate_comment]
