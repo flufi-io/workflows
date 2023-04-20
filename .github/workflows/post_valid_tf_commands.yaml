@@ -2,7 +2,7 @@ name: Post valid Terraform commands on new PR
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
+      GH_TOKEN:
         required: true
     outputs:
       environments:
@@ -16,7 +16,7 @@ jobs:
       - name: Fetch environments
         id: fetch-environments
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
@@ -26,7 +26,7 @@ jobs:
 
       - name: Post comment with valid commands
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           pr_number="${{ github.event.number }}"
           valid_commands="Valid commands for this repository are:\n\n"

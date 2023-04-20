@@ -11,4 +11,4 @@ jobs:
   post_commands:
     uses:  flufi-io/workflows/.github/workflows/post_valid_tf_commands.yaml@main
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
