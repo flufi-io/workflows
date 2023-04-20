@@ -4,7 +4,6 @@ on:
     types: [ created ]
 permissions:
   contents: read
-  metadata: read
   pull-requests: read
 
 jobs:
