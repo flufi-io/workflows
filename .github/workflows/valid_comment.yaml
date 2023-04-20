@@ -60,10 +60,6 @@ jobs:
             echo "Invalid comment: comment can only end with alphanumeric characters, whitespace, '.', or '-'"
             exit 1
           fi
-          if [[ "$comment" != /terraform* ]]; then
-            echo "Invalid comment: comment must start with '/terraform'"
-            exit 1
-          fi
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
@@ -85,47 +81,6 @@ jobs:
             echo "pr_comment=false" >> $GITHUB_OUTPUT
           fi
 
-
-      - name: Extract environment and operation from comment
-        if: ${{ steps.check_pr_comment.outputs.pr
-      - name: Check if valid comment
-        id: check_valid_comment
-        run: |
-          comment="${{ inputs.comment_body }}"
-          if [[ "$comment" =~ ^\s ]]; then
-            echo "Invalid comment: comment cannot start with whitespace"
-            exit 1
-          fi
-          if [[ "$comment" =~ [^[:alnum:][:space:]\.-]+$ ]]; then
-            echo "Invalid comment: comment can only end with alphanumeric characters, whitespace, '.', or '-'"
-            exit 1
-          fi
-          if [[ "$comment" =~ ^\/ ]]; then
-            echo "Comment is a command"
-            num_words=$(echo "$comment" | wc -w)
-            operation=$(echo "$comment" | awk '{print $1 " " $2}')
-            environment=$(echo "$comment" | awk '{print $3}')
-            if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
-              echo "valid=true" >> $GITHUB_OUTPUT
-            else
-              echo "valid=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "Comment is not a command"
-            echo "valid=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check if comment is from a Pull Request
-        if: ${{ steps.check_valid_comment.outputs.valid == 'true' }}
-        id: check_pr_comment
-        run: |
-          issue_url="${{ github.event.issue.url }}"
-          pr_url=$(gh api "$issue_url" | jq -r '.pull_request.url')
-          if [ "$pr_url" != "null" ]; then
-            echo "pr_comment=true" >> $GITHUB_OUTPUT
-          else
-            echo "pr_comment=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Extract environment and operation from comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
