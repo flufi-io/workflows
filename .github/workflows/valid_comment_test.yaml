@@ -4,7 +4,7 @@ on:
     types: [ created ]
 permissions: write-all
 env:
-  VALID_ENVIRONMENTS: development,staging,production
+  VALID_ENVIRONMENTS: ${{ join(github.event.repository.environments, ',') }}
 
 jobs:
   validate_comment:
