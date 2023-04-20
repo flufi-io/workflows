@@ -45,7 +45,6 @@ jobs:
     steps:
 
       - name: Check if comment is from a Pull Request
-
         id: check_pr_comment
         run: |
           issue_url="${{ github.event.issue.url }}"
@@ -55,6 +54,18 @@ jobs:
           else
             echo "pr_comment=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Add link to workflow run in PR comment
+        if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
+        id: add_link_to_pr_comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          pr_number="${{ inputs.pr_number }}"
+          repo="${{ inputs.repo }}"
+          link="https://github.com/$repo/actions/runs/$RUN_ID"
+          gh pr comment $pr_number -b "Workflow run: $link"
 
       - name: Check if valid comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
