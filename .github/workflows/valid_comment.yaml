@@ -49,9 +49,10 @@ jobs:
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
             echo "Invalid comment: comment must start with a slash"
-            exit 1
+            exit 0
           else
             comment="${comment#"/"}"
+          fi
           if [[ "$comment" =~ ^\s ]]; then
             echo "Invalid comment: comment cannot start with whitespace"
             exit 1
