@@ -87,6 +87,8 @@ jobs:
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_command
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
