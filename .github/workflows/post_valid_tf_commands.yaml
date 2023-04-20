@@ -34,7 +34,6 @@ jobs:
             valid_commands+="\`terraform plan ${environment}\`\n"
             valid_commands+="\`terraform apply ${environment}\`\n"
           done
-          valid_commands+="\nAvailable environments: ${{ steps.fetch-environments.outputs.environments }}\n"
 
           comment_data='{"body": "'"${valid_commands//\"/\\\"}"'"}'
           curl --request POST \
