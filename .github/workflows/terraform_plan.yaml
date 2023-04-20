@@ -57,6 +57,16 @@ jobs:
     outputs:
         artifact: ${{ steps.setup.outputs.artifact }}
     steps:
+      - name: Add link to workflow run in PR comment
+        id: add_link_to_pr_comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          pr_number="${{ inputs.pr_number }}"
+          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          comment="You can check the current run of the Terraform Plan [here]($link)"
+          gh pr comment $pr_number --body "$comment"
       - name: setup
         id: setup
         run: |
@@ -64,6 +74,7 @@ jobs:
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
 
       - name: configure aws credentials
+        id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.OIDC_ROLE }}
@@ -71,23 +82,27 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        id: setup-terraform
         with:
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
       - name: checkout
+        id: checkout
         uses: actions/checkout@v3
         with:
           ref:  refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
 
       - name: Terraform Init
+        id: terraform-init
         run: terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
 
       - name: Terraform Plan
+        id: terraform-plan
         working-directory: ${{ inputs.working-directory }}
         run: |
           terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
@@ -115,22 +130,13 @@ jobs:
             gh pr comment ${{ inputs.pr_number }} --body "$chunk"
           done
 
-
-      - name: Save Terraform state and plan
-        id: save-artifact
-        run: tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
-        continue-on-error: false
-
-      - name: install sops
+      - name: Save Terraform state, plan, and encrypt
+        id: save-and-encrypt-artifact
         run: |
+          tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
           wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
           sudo dpkg -i sops_3.7.3_amd64.deb
-        continue-on-error: false
-
-      - name: encrypt terraform plan
-        id: encrypt
-        run: |
-         sops -e -i ${{ steps.setup.outputs.artifact }}
+          sops -e -i ${{ steps.setup.outputs.artifact }}
         continue-on-error: false
 
       - name: Upload Terraform artifacts
