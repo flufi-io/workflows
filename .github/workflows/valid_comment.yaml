@@ -69,12 +69,13 @@ jobs:
         id: check_pr_comment
         run: |
           issue_url="${{ github.event.issue.url }}"
-          pr_url=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$issue_url" | jq -r '.pull_request.url')
+          pr_url=$(gh api "$issue_url" | jq -r '.pull_request.url')
           if [ "$pr_url" != "null" ]; then
             echo "pr_comment=true" >> $GITHUB_OUTPUT
           else
             echo "pr_comment=false" >> $GITHUB_OUTPUT
           fi
+
 
       - name: Extract environment and operation from comment
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
@@ -92,9 +93,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pr_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-             | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
+          pr_data=$(gh api -X GET "/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
+            | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
 
           pr_number=$(echo "$pr_data" | jq '.number')
           commit_sha=$(echo "$pr_data" | jq '.sha')
