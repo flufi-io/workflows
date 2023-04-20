@@ -3,29 +3,25 @@ on:
   issue_comment:
     types: [ created ]
 permissions: write-all
-env:
-  VALID_ENVIRONMENTS: ${{ join(github.event.repository.environments, ',') }}
-
 
 jobs:
-  validate_comment:
+  terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
-      valid_environments: ${{ env.VALID_ENVIRONMENTS }}
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
-    if: ${{ needs.validate_comment.outputs.operation == 'plan' }}
-    needs: [ validate_comment ]
+    if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
+    needs: [ terraform_command_validation ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
     with:
-      environment: ${{ needs.validate_comment.outputs.environment }}
-      operation: ${{ needs.validate_comment.outputs.operation }}
+      environment: ${{ needs.terraform_command_validation.outputs.environment }}
+      operation: ${{ needs.terraform_command_validation.outputs.operation }}
       working-directory: terraform
-      artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
-      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
-      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
-      repo: ${{ needs.validate_comment.outputs.repo }}
+      artifact_name: ${{ needs.terraform_command_validation.outputs.artifact_name }}
+      pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
+      commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
+      repo: ${{ needs.terraform_command_validation.outputs.repo }}
       terraform_version: 1.4.2 # Optional: You can omit this line to use the latest version.
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,15 +30,15 @@ jobs:
       TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
 
   terraform_apply:
-    needs: [validate_comment]
-    if: ${{ needs.validate_comment.outputs.operation == 'apply' }}
+    needs: [terraform_command_validation]
+    if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
     uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
     secrets: inherit
     with:
-      environment: ${{ needs.validate_comment.outputs.environment }}
-      operation: ${{ needs.validate_comment.outputs.operation }}
+      environment: ${{ needs.terraform_command_validation.outputs.environment }}
+      operation: ${{ needs.terraform_command_validation.outputs.operation }}
       working-directory: terraform
-      artifact_name: ${{ needs.validate_comment.outputs.artifact_name }}
-      pr_number: ${{ needs.validate_comment.outputs.pr_number }}
-      commit_sha: ${{ needs.validate_comment.outputs.commit_sha }}
-      repo: ${{ needs.validate_comment.outputs.repo }}
+      artifact_name: ${{ needs.terraform_command_validation.outputs.artifact_name }}
+      pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
+      commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
+      repo: ${{ needs.terraform_command_validation.outputs.repo }}
