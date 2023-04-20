@@ -2,10 +2,6 @@ name: terraform command validation
 on:
   workflow_call:
     inputs:
-      valid_environments:
-        description: 'A comma-separated list of valid environments'
-        required: true
-        type: string
       comment_body:
         description: 'The body of the comment that triggered the workflow'
         required: true
@@ -114,6 +110,16 @@ jobs:
             echo "valid=true" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
+          fi
+          env_list=$(gh api repos/${{ github.repository }}/environments \
+            --header "Accept: application/vnd.github+json" \
+            | jq -r '.environments[].name')
+          if [[ "$env_list" =~ (^|,)${environment}($|,) ]]; then
+            echo "valid=true" >> $GITHUB_OUTPUT
+            echo "environment=${environment}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
+            exit 1
           fi
 
       - name: Extract environment and operation from command

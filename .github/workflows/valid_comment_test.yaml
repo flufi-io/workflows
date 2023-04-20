@@ -7,28 +7,10 @@ permissions:
   pull-requests: read
 
 jobs:
-  get_environments:
-    runs-on: ubuntu-latest
-    outputs:
-      environments: ${{ steps.fetch-environments.outputs.environments }}
-    steps:
-      - name: Fetch environments
-        id: fetch-environments
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          env_list=$(gh api repos/${{ github.repository }}/environments \
-            --header "Accept: application/vnd.github+json" \
-            | jq -r '.environments[].name' | paste -sd "," -)
-          echo "environments=$env_list" >> $GITHUB_ENV
-          echo "environments=$env_list" >> $GITHUB_OUTPUT
-
   validate_command:
-    needs: [get_environments]
     uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     secrets: inherit
     with:
-      valid_environments: ${{ needs.get_environments.outputs.environments }}
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:
