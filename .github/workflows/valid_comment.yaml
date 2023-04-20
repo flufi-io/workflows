@@ -33,10 +33,10 @@ on:
 
 
 jobs:
-  valid_operation:
+  terraform_command_validation:
     runs-on: ubuntu-latest
     outputs:
-      valid: ${{ steps.check_valid_comment.outputs.valid }}
+      valid: ${{ steps.check_valid_command.outputs.valid }}
       operation: ${{ steps.set_environment.outputs.operation }}
       environment: ${{ steps.set_environment.outputs.environment }}
       pr_number: ${{ steps.get_pr.outputs.pr_number }}
@@ -72,36 +72,39 @@ jobs:
           echo "repo=$repo" >> $GITHUB_OUTPUT
 
       - name: Add link to workflow run in PR comment
+        id: add_link_to_pr_comment
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ steps.get_pr.outputs.pr_number }}"
           link="https://github.com/${{ steps.get_pr.outputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          job_name="${{ github.job }}"
+          comment="Workflow run ($job_name): $link"
           curl --request POST \
-               --url https://api.github.com/repos/${{ steps.get_pr.outputs.repo }}/issues/${pr_number}/comments \
-               --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-               --header 'content-type: application/json' \
-               --data "{\"body\":\"Workflow run: ${link}\"}"
+            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}}/comments" \
+            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            --header 'content-type: application/json' \
+            --data "{\"body\": \"${comment}\"}"
 
 
-      - name: Check if valid comment
+      - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
-        id: check_valid_comment
+        id: check_valid_command
         run: |
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
-            echo "Invalid comment: comment must start with a slash"
+            echo "Invalid command: comment must start with a slash"
             exit 0
           else
             comment="${comment#"/"}"
           fi
           if [[ "$comment" =~ ^\s ]]; then
-            echo "Invalid comment: comment cannot start with whitespace"
+            echo "Invalid command: comment cannot start with whitespace"
             exit 1
           fi
           if [[ "$comment" =~ [^[:alnum:][:space:]\.-]+$ ]]; then
-            echo "Invalid comment: comment can only end with alphanumeric characters, whitespace, '.', or '-'"
+            echo "Invalid command: comment can only end with alphanumeric characters, whitespace, '.', or '-'"
             exit 1
           fi
           num_words=$(echo "$comment" | wc -w)
@@ -113,7 +116,7 @@ jobs:
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Extract environment and operation from comment
+      - name: Extract environment and operation from command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: set_environment
         run: |
