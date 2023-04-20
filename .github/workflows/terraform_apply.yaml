@@ -70,7 +70,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ steps.get_pr.outputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
           job_name="${{ github.job }}"
           comment="You can check the current run of the $job_name [here]($link)"
           curl --request POST \
