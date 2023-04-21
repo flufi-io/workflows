@@ -33,8 +33,8 @@ jobs:
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
       repo: ${{ needs.terraform_command_validation.outputs.repo }}
       env_vars: |
-        TF_VAR_aws_region: 'sarasa' # dummy vars to show how to pass env vars to Terraform
-        TF_VAR_oidc_role: 'sarasa' # dummy vars to show how to pass env vars to Terraform
+        TF_VAR_aws_region=sarasa
+        TF_VAR_oidc_role=sarasa
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
