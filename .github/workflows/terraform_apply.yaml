@@ -40,6 +40,11 @@ on:
         required: false
         type: string
         default: ''
+      env_vars:
+        description: 'Multi-line string of environment variables to pass to the steps'
+        required: false
+        type: string
+        default: ''
 
     secrets:
       GH_TOKEN:
@@ -63,7 +68,10 @@ jobs:
         run: |
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-
+          echo "${{ inputs.env_vars }}" | while read -r line
+          do
+            echo "$line" >> $GITHUB_ENV
+          done
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
         env:

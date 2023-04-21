@@ -15,7 +15,6 @@ on:
         description: 'The operation that was extracted from the comment'
         required: true
         type: string
-
       working-directory:
         description: 'The path to the working directory'
         required: false
@@ -38,6 +37,11 @@ on:
         required: true
         type: string
       terraform_version:
+        required: false
+        type: string
+        default: ''
+      env_vars:
+        description: 'Multi-line string of environment variables to pass to the steps'
         required: false
         type: string
         default: ''
@@ -81,7 +85,10 @@ jobs:
         run: |
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-
+          echo "${{ inputs.env_vars }}" | while read -r line
+          do
+            echo "$line" >> $GITHUB_ENV
+          done
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
