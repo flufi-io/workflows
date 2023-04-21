@@ -6,8 +6,9 @@ name: terraform plan test
 on:
   issue_comment:
     types: [ created ]
-permissions: write-all
-
+permissions:
+  pull_request: read
+  repository: write
 
 jobs:
   terraform_command_validation:
