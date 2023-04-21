@@ -7,8 +7,8 @@ on:
   issue_comment:
     types: [ created ]
 permissions:
-  pull_request: read
-  repository: write
+  pull-requests: read
+  repository-projects: write
 
 jobs:
   terraform_command_validation:
