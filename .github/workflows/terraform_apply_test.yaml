@@ -12,8 +12,6 @@ permissions:
   id-token: write
   actions: write
 
-
-
 jobs:
   terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
