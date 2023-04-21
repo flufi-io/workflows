@@ -11,15 +11,13 @@ permissions:
   pull-requests: write
   issues: write
 
-
-
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
-    with:
-      comment_body: ${{ github.event.comment.body }}
+    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}

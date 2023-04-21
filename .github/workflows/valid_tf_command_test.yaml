@@ -13,7 +13,7 @@ permissions:
 
 
 jobs:
-  validate_command:
+  terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -21,10 +21,10 @@ jobs:
       comment_body: ${{ github.event.comment.body }}
 
   print_environment_and_operation:
-    needs: [validate_command]
+    needs: [terraform_command_validation]
     runs-on: ubuntu-latest
     steps:
       - name: Print environment and operation
         run: |
-          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.validate_command.outputs.operation}} ${{needs.validate_command.outputs.environment}}" ]]
+          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.terraform_command_validation.outputs.operation}} ${{needs.terraform_command_validation.outputs.environment}}" ]]
         if: ${{ success() }}
