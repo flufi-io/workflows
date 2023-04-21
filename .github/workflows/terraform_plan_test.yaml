@@ -11,9 +11,11 @@ permissions: write-all
 
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
+    uses: flufi-io/workflows/.github/workflows/valid_comment.yaml@main
     with:
       comment_body: ${{ github.event.comment.body }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
