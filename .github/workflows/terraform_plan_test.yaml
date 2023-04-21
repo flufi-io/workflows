@@ -8,8 +8,8 @@ on:
     types: [ created ]
 permissions:
   contents: read
-  pull-requests: read
-  issues: read
+  pull-requests: write
+  issues: write
 
 
 jobs:
