@@ -10,6 +10,9 @@ on:
         description: 'The body of the comment that triggered the workflow'
         required: true
         type: string
+    secrets:
+      GH_TOKEN:
+        required: true
 
     outputs:
       environment:
