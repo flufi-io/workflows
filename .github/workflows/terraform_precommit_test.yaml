@@ -14,6 +14,5 @@ jobs:
     uses: ./.github/workflows/terraform_precommit.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
-      env: ${{ env }}
+      env: ${{ GITHUB_ENV }}
     secrets: inherit
-
