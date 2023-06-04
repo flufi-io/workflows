@@ -10,7 +10,7 @@ on:
         type: string
 env:
   DOCKER_USERNAME: ${{ github.actor }}
-  DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  DOCKER_PASSWORD: ${{ secrets.GH_TOKEN }}
 
 jobs:
   pre-commit:
