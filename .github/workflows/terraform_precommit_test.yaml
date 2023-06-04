@@ -13,3 +13,4 @@ jobs:
     uses: ./.github/workflows/terraform_precommit.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit

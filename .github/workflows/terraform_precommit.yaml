@@ -1,5 +1,5 @@
 ---
-name: terraform pre-commit
+name: terraform-pre-commit
 
 on:
   workflow_call:
@@ -8,7 +8,9 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
+
 permissions: write-all
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
