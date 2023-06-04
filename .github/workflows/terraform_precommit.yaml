@@ -8,10 +8,7 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
-env:
-  DOCKER_USERNAME: ${{ github.actor }}
-  DOCKER_PASSWORD: ${{ secrets.GH_TOKEN }}
-
+permissions: write-all
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
