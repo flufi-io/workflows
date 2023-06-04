@@ -8,6 +8,9 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
+env:
+  DOCKER_USERNAME: ${{ github.actor }}
+  DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   pre-commit:
