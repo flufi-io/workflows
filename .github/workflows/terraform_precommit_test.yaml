@@ -7,12 +7,10 @@ permissions: write-all
 env:
   DOCKER_USERNAME: ${{ github.actor }}
   DOCKER_PASSWORD: ${{ secrets.GH_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   pre-commit:
     uses: ./.github/workflows/terraform_precommit.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
-      env: ${{ GITHUB_ENV }}
     secrets: inherit
