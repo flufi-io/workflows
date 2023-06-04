@@ -12,6 +12,8 @@ on:
         required: false
         type: string
 
+permissions: write-all
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
