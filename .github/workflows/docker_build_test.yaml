@@ -1,0 +1,11 @@
+name: docker-build
+on:
+  pull_request:
+
+permissions: write-all
+
+jobs:
+  service:
+    uses: ./.github/workflows/docker_build.yaml
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
