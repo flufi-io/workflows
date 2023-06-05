@@ -22,9 +22,12 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
           ref: ${{ inputs.ref }}
+          path: main
 
       - name: Set up pre-commit hooks
         run: pre-commit install --install-hooks
+        working-directory: main
 
       - name: Run pre-commit checks
         run: pre-commit run -a
+        working-directory: main
