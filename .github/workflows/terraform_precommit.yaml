@@ -11,7 +11,6 @@ on:
 
 permissions: write-all
 
-
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
