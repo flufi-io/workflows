@@ -2,8 +2,9 @@
 name: terraform pre-commit test
 on:
   pull_request:
-permissions: write-all
 
+permissions:
+  contents: read
 env:
   DOCKER_USERNAME: ${{ github.actor }}
   DOCKER_PASSWORD: ${{ secrets.GH_TOKEN }}
