@@ -8,8 +8,12 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
-
-permissions: write-all
+premissions:
+  contents: read
+  pull-requests: write
+  packages: read
+  metadata: read
+  secrets: read
 
 jobs:
   pre-commit:
