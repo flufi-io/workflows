@@ -8,10 +8,7 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
-      args:
-        description: 'Build arguments'
-        required: false
-        type: string
+
 permissions:
   id-token: write
   contents: read
@@ -50,7 +47,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
           path: main
 
       - name: install sops
