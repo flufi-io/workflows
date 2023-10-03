@@ -17,39 +17,6 @@ jobs:
     container: ghcr.io/flufi-io/docker-terraform-action:latest
     steps:
 
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now able
-          # to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: Load  1password credentials
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env:
-          SECRETS: op://flufi-sandbox/cicd/json
-
-
-      - name: configure aws credentials
-        id: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ fromJson(env.SECRETS).cicd.role }}
-          aws-region: ${{ fromJson(env.SECRETS).cicd.region }}
-
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v3
-        with:
-          token:  ${{ fromJson(env.SECRETS).cicd.github.token }}
-          ref: ${{ inputs.ref }}
-          path: main
-
       - name: checkout
         uses: actions/checkout@v3
         with:
