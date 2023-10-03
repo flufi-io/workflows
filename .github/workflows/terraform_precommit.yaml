@@ -11,6 +11,12 @@ on:
 
 permissions:
   contents: read
+
+
+env:
+  DOCKER_USERNAME: ${{ github.actor }}
+  DOCKER_PASSWORD: ${{ secrets.github_token }}
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
