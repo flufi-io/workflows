@@ -1,4 +1,9 @@
 ---
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# All rights reserved.
+# Please note that Flufi LLC owns the original version of this workflow,
+# which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
+
 name: terratest
 
 on:
@@ -52,8 +57,8 @@ jobs:
 
       - name: install sops
         run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops_3.7.3_amd64.deb
-          sudo dpkg -i sops_3.7.3_amd64.deb
+          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
+          sudo dpkg -i sops_3.8.0_amd64.deb
 
       - name: decrypt secrets
         run: |

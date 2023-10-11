@@ -4,10 +4,23 @@
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
 
-name: terraform apply test
+name: terraform
 on:
-  issue_comment:
-    types: [ created ]
+  workflow_call:
+    inputs:
+      comment_body:
+        description: 'Comment body from the issue comment event'
+        required: true
+        type: string
+      terraform_version:
+        required: false
+        type: string
+        default: ''
+      tf_log_level:
+        description: 'Terraform log level'
+        required: false
+        type: string
+        default: ''
 permissions:
   contents: read
   pull-requests: write
@@ -18,15 +31,15 @@ permissions:
 jobs:
   terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
     with:
-      comment_body: ${{ github.event.comment.body }}
+      comment_body: ${{ inputs.comment_body }}
 
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
     needs: [ terraform_command_validation ]
     uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    secrets: inherit
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
@@ -35,19 +48,12 @@ jobs:
       pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
       repo: ${{ needs.terraform_command_validation.outputs.repo }}
-      env_vars: |
-        TF_VAR_aws_region=sarasa
-        TF_VAR_oidc_role=sarasa
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
 
   terraform_apply:
-    needs: [terraform_command_validation]
+    needs: [ terraform_command_validation ]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
     uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
+    secrets: inherit
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
@@ -56,11 +62,3 @@ jobs:
       pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
       repo: ${{ needs.terraform_command_validation.outputs.repo }}
-      env_vars: |
-        TF_VAR_aws_region=sarasa
-        TF_VAR_oidc_role=sarasa
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
