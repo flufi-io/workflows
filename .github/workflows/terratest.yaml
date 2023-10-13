@@ -40,9 +40,9 @@ jobs:
         env:
           OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
-          AWS_ROLE_ARN: op://flufi-$APP_ENV/github_actions/AWS_ROLE_ARN
-          AWS_REGION: op://flufi-$APP_ENV/github_actions/AWS_REGION
-          GITHUB_TOKEN: op://flufi-$APP_ENV/github_actions/GITHUB_TOKEN
+          AWS_ROLE_ARN: "op://flufi-$APP_ENV/github_actions/AWS_ROLE_ARN"
+          AWS_REGION: "op://flufi-$APP_ENV/github_actions/AWS_REGION"
+          GITHUB_TOKEN: "op://flufi-$APP_ENV/github_actions/GITHUB_TOKEN"
 
       - name: configure aws credentials
         id: configure-aws-credentials
