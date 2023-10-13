@@ -28,7 +28,7 @@ env:
 jobs:
   terratest:
     runs-on: ubuntu-latest
-    environment: $APP_ENV
+    environment: sandbox
     steps:
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
