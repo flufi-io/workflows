@@ -13,41 +13,43 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
+      secrets:
+        description: '1Password secret path'
+        required: false
+        type: string
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  APP_ENV: sandbox
 
 jobs:
   terratest:
     runs-on: ubuntu-latest
+    environment: ${{ env.APP_ENV }}
     steps:
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now able
-          # to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
 
-      - name: Load  1password credentials
+      - name: Load secret
         uses: 1password/load-secrets-action@v1
         with:
-          # Export loaded secrets as environment variables
           export-env: true
         env:
-          SECRETS: op://flufi-sandbox/cicd/json
-
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          AWS_ROLE_ARN: op://flufi-${{ env.APP_ENV }}/github_actions/AWS_ROLE_ARN
+          AWS_REGION: op://flufi-${{ env.APP_ENV }}/github_actions/AWS_REGION
+          GITHUB_TOKEN: op://flufi-${{ env.APP_ENV }}/github_actions/GITHUB_TOKEN
 
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ fromJson(env.SECRETS).aws.role }}
-          aws-region: ${{ fromJson(env.SECRETS).aws.region }}
-
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: checkout
         uses: actions/checkout@v3
@@ -55,25 +57,15 @@ jobs:
           ref: ${{ inputs.ref }}
           path: main
 
-      - name: install sops
-        run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
-
-      - name: decrypt secrets
-        run: |
-          cd main/examples/complete
-          sops -d terraform.enc > terraform.tfvars
-
       - uses: actions/setup-go@v4
         with:
           cache-dependency-path: main/tests/go.mod
           go-version: '>=1.21.0'
 
-      - name: run terratest
+      - name: run terratest with 1Password secrets
         working-directory: main/tests
         run: |
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod init test
           go mod tidy > /dev/null
-          go test -v -count=1 -timeout 120m ./...
+          op run --env-file examples/complete/secrets.env -- go test -v -count=1 -timeout 120m ./...
