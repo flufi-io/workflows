@@ -95,14 +95,7 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
-      - name: Load secret
-        uses: 1password/load-secrets-action@v1
-        with:
-          export-env: true
-        env:
-          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
-          GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
+
 
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
@@ -149,9 +142,10 @@ jobs:
             echo "valid=true" >> $GITHUB_OUTPUT
             echo "environment=${environment}" >> $GITHUB_OUTPUT
           else
-            echo "Invalid command: environment, '${environment}' does not exist in the repository, '$env_list'}'" >&2
+            echo "Invalid command: environment, '${environment}' does not exist in the repository, '$env_list'}'"
             exit 1
           fi
+
       - name: Extract environment and operation from command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: set_environment
