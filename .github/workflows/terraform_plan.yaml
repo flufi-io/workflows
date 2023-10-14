@@ -188,14 +188,14 @@ jobs:
           tar czf tfplan.tar.gz .terraform tfplan
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
-          sops -e -i ${{ inputs.artifact_name }}
+          sops -e -i tfplan.tar.gz
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: ./tfplan.tar.gz
+          path: tfplan.tar.gz
           name: ${{ inputs.artifact_name }}
           retention-days: 1
         continue-on-error: false
