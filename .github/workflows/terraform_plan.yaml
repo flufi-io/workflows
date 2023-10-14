@@ -54,7 +54,7 @@ jobs:
     if: ${{ inputs.operation == 'plan' }}
     runs-on: ubuntu-latest
     outputs:
-        artifact: ${{ steps.setup.outputs.artifact }}
+      artifact: ${{ steps.setup.outputs.artifact }}
     steps:
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
@@ -71,30 +71,32 @@ jobs:
             --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
-            - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now able
-          # to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
-      - name: Load  1password credentials
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load secret
         uses: 1password/load-secrets-action@v1
         with:
-          # Export loaded secrets as environment variables
           export-env: true
         env:
-          SECRETS: op://flufi-sandbox/cicd/json
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          AWS_ROLE_ARN: op://flufi-${{ inputs.environment }}/github_actions/AWS_ROLE_ARN
+          AWS_REGION: op://flufi-${{ inputs.environment }}/github_actions/AWS_REGION
+          GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
+          INFRA_COST_API_KEY: op://flufi-${{ inputs.environment }}/github_actions/INFRA_COST_API_KEY
+          SSH_KEY: op://flufi-${{ inputs.environment }}/github_actions/SSH_KEY
+
 
 
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ fromJson(env.SECRETS).aws.role }}
-          aws-region: ${{ fromJson(env.SECRETS).aws.region }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
 
 
       - name: setup
@@ -118,7 +120,7 @@ jobs:
         id: checkout
         uses: actions/checkout@v3
         with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
+          ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
 
       - name: Terraform Init
@@ -131,7 +133,9 @@ jobs:
         id: terraform-plan
         working-directory: ${{ inputs.working-directory }}
         run: |
-          terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
+          op run --env-file secrets.env -- \
+            terraform plan -out=tfplan -var-file=fixtures.${{ inputs.environment }}.tfvars  \
+            -input=false -no-color
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
         continue-on-error: false
@@ -139,7 +143,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         with:
-          api-key: ${{ fromJson(env.SECRETS).infracost.api_key }}
+          api-key: ${{ env.INFRA_COST_API_KEY }}
 
       - name: Generate Infracost JSON
         run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
@@ -160,7 +164,7 @@ jobs:
       - name: Post Terraform plan output as PR comment
         id: terraform-plan-comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.github_token }}
         run: |
           plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           max_comment_size=65535
