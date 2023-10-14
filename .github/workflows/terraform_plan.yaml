@@ -88,7 +88,7 @@ jobs:
           AWS_ROLE_ARN: op://flufi-${{ inputs.environment }}/github_actions/AWS_ROLE_ARN
           AWS_REGION: op://flufi-${{ inputs.environment }}/github_actions/AWS_REGION
           GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
-          INFRA_COST_API_KEY: op://flufi-${{ inputs.environment }}/github_actions/INFRA_COST_API_KEY
+          INFRACOST_API_KEY: op://flufi-${{ inputs.environment }}/github_actions/INFRACOST_API_KEY
           SSH_KEY: op://flufi-${{ inputs.environment }}/github_actions/SSH_KEY
 
 
@@ -146,7 +146,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         with:
-          api-key: ${{ env.INFRA_COST_API_KEY }}
+          api-key: ${{ env.INFRACOST_API_KEY }}
 
       - name: Generate Infracost JSON
         run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
