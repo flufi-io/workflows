@@ -95,12 +95,18 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
 
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_command
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
