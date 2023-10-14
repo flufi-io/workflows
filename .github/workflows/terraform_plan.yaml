@@ -83,8 +83,6 @@ jobs:
       - name: setup
         id: setup
         run: |
-          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           echo "${{ inputs.env_vars }}" | while read -r line
           do
             echo "$line" >> $GITHUB_ENV
@@ -139,6 +137,7 @@ jobs:
             -input=false -no-color
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
+          echo "artifact_path=plan_output.txt" >> $GITHUB_OUTPUT
         continue-on-error: false
 
       - name: Setup Infracost
@@ -186,17 +185,17 @@ jobs:
       - name: Save Terraform state, plan, and encrypt
         id: save-and-encrypt-artifact
         run: |
-          tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
+          tar czf tfplan.tar.gz .terraform tfplan
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
-          sops -e -i ${{ steps.setup.outputs.artifact }}
+          sops -e -i ${{ inputs.artifact_name }}
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
         uses: actions/upload-artifact@v3
         with:
-          path: ${{ steps.setup.outputs.artifact }}
-          name: ${{ steps.setup.outputs.artifact_name }}
+          path: ./tfplan.tar.gz
+          name: ${{ inputs.artifact_name }}
           retention-days: 1
         continue-on-error: false
