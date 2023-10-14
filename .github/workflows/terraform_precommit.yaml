@@ -28,6 +28,7 @@ env:
 
 jobs:
   pre-commit:
+    environment: sandbox
     runs-on: ubuntu-latest
     container: ghcr.io/flufi-io/docker-terraform-action:latest
     steps:
