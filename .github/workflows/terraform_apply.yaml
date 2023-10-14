@@ -155,7 +155,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
+          ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
 
       - name: Download Terraform artifacts
@@ -201,15 +201,21 @@ jobs:
         continue-on-error: false
 
       - name: decrypt plan
+        id: decrypt_plan
         run: |
-          sops -d -i *.tar.gz
+          ls -R
+          sops -d -i ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
+        working-directory: ${{ inputs.working-directory }}
+
 
       - name: extract plan
+        id: extract_plan
         run: |
           tar xzf ${{ steps.setup.outputs.artifact_name }}
           rm ${{ steps.setup.outputs.artifact_name }}
         continue-on-error: false
+        working-directory: ${{ inputs.working-directory }}
 
       - name: terraform apply
         if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
