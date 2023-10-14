@@ -152,11 +152,11 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          ref: refs/pull/${{ inputs.pr_number }}/head
-          repository: ${{ inputs.repo }}
+#      - name: checkout
+#        uses: actions/checkout@v3
+#        with:
+#          ref: refs/pull/${{ inputs.pr_number }}/head
+#          repository: ${{ inputs.repo }}
 
       - name: Download Terraform artifacts
         id: download-artifact
@@ -203,8 +203,7 @@ jobs:
       - name: decrypt plan
         id: decrypt_plan
         run: |
-          ls -R
-          sops -d -i ${{ steps.setup.outputs.artifact_name }}
+          sops -d -i tfplan.tar.gz
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
@@ -212,8 +211,7 @@ jobs:
       - name: extract plan
         id: extract_plan
         run: |
-          tar xzf ${{ steps.setup.outputs.artifact_name }}
-          rm ${{ steps.setup.outputs.artifact_name }}
+          tar xzf tfplan.tar.gz
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
