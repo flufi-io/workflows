@@ -59,24 +59,6 @@ jobs:
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
-      - name: Add link to workflow run in PR comment
-        id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-          job_name="${{ github.job }}"
-          comment="You can check the current run of the $job_name [here]($link)"
-          curl --request POST \
-            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            --header 'content-type: application/json' \
-            --data "{\"body\": \"${comment}\"}"
-
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
 
       - name: Load secret
         uses: 1password/load-secrets-action@v1
@@ -91,16 +73,12 @@ jobs:
           INFRACOST_API_KEY: op://flufi-${{ inputs.environment }}/github_actions/INFRACOST_API_KEY
           SSH_KEY: op://flufi-${{ inputs.environment }}/github_actions/SSH_KEY
 
-
-
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-
-
 
       - name: setup
         id: setup
@@ -146,6 +124,9 @@ jobs:
           terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
 
       - name: Terraform Plan
         id: terraform-plan
