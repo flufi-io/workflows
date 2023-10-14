@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
+    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@op-terratest
     secrets: inherit
     with:
       comment_body: ${{ inputs.comment_body }}

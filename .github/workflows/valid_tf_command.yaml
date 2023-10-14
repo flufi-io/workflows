@@ -14,7 +14,7 @@ on:
         type: string
     secrets:
       GH_TOKEN:
-        required: true
+        required: false
 
     outputs:
       environment:
@@ -81,7 +81,7 @@ jobs:
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ steps.get_pr.outputs.pr_number }}"
