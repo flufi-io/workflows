@@ -34,9 +34,8 @@ on:
         value: ${{ jobs.terraform_command_validation.outputs.commit_sha }}
       artifact_name:
         description: 'The path where the artifact is stored'
-        value: >
-          plan-${{ jobs.terraform_command_validation.outputs.environment }}
-          -${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz
+        value: 'plan-${{ jobs.terraform_command_validation.outputs.environment }}
+        -${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz'
 
 permissions: write-all
 
