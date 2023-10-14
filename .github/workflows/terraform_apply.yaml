@@ -142,14 +142,6 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: setup
-        id: setup
-        run: |
-          echo "${{ inputs.env_vars }}" | while read -r line
-          do
-            echo "$line" >> $GITHUB_ENV
-          done
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         id: setup-terraform
