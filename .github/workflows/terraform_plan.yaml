@@ -121,7 +121,8 @@ jobs:
       - name: Terraform Init
         id: terraform-init
         run: |
-          terraform init -input=false -no-color -upgrade -reconfigure
+          terraform init -input=false -no-color -upgrade -reconfigure \ 
+            -backend-config=.backend/${{ inputs.environment }}.tfbackend
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
 
