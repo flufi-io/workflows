@@ -38,7 +38,6 @@ jobs:
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
-      working-directory: terraform
       artifact_name: ${{ needs.terraform_command_validation.outputs.artifact_name }}
       pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
@@ -52,7 +51,6 @@ jobs:
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
-      working-directory: terraform
       artifact_name: ${{ needs.terraform_command_validation.outputs.artifact_name }}
       pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
