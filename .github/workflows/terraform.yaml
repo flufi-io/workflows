@@ -21,12 +21,7 @@ on:
         required: false
         type: string
         default: ''
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  id-token: write
-  actions: write
+permissions: write-all
 
 jobs:
   terraform_command_validation:
