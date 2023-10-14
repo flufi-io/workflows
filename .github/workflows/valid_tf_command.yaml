@@ -152,7 +152,7 @@ jobs:
           export environment=$(echo "$comment" | awk '{print $3}')
           export operation=$(echo "$comment" | awk '{print $2}')
           export artifact_name="plan-${environment}-${{ steps.get_pr.outputs.commit_sha }}.tar.gz"
-          
+
           echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT

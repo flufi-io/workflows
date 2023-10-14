@@ -46,7 +46,7 @@ jobs:
   terraform_apply:
     needs: [ terraform_command_validation ]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
-    uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@main
+    uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@op-terratest
     secrets: inherit
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}

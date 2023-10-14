@@ -64,21 +64,6 @@ jobs:
           do
             echo "$line" >> $GITHUB_ENV
           done
-      - name: Add link to workflow run in PR comment
-        id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-          job_name="${{ github.job }}"
-          comment="You can check the current run of the $job_name [here]($link)"
-          curl --request POST \
-            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            --header 'content-type: application/json' \
-            --data "{\"body\": \"${comment}\"}"
 
       - name: Fetch PR reviews
         id: fetch_pr_reviews
@@ -138,18 +123,37 @@ jobs:
           fi
         continue-on-error: false
 
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          AWS_ROLE_ARN: op://flufi-${{ inputs.environment }}/github_actions/AWS_ROLE_ARN
+          AWS_REGION: op://flufi-${{ inputs.environment }}/github_actions/AWS_REGION
+          INFRACOST_API_KEY: op://flufi-${{ inputs.environment }}/github_actions/INFRACOST_API_KEY
+          SSH_KEY: op://flufi-${{ inputs.environment }}/github_actions/SSH_KEY
+
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.OIDC_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: setup
+        id: setup
+        run: |
+          echo "${{ inputs.env_vars }}" | while read -r line
+          do
+            echo "$line" >> $GITHUB_ENV
+          done
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         id: setup-terraform
         with:
-          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
@@ -216,9 +220,7 @@ jobs:
         if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
-          terraform init -reconfigure -upgrade
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
-          ls -R
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 

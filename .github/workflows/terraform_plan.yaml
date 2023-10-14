@@ -114,7 +114,7 @@ jobs:
           echo "${{ env.SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
           ssh-add ~/.ssh/id_rsa
-          
+
 
       - name: Terraform Init
         id: terraform-init
@@ -185,7 +185,7 @@ jobs:
       - name: Save Terraform state, plan, and encrypt
         id: save-and-encrypt-artifact
         run: |
-          tar czf tfplan.tar.gz .terraform tfplan
+          tar czf tfplan.tar.gz .terraform tfplan *.tf
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
           sops -e -i tfplan.tar.gz
