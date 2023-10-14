@@ -120,11 +120,12 @@ jobs:
 
       - name: Terraform Init
         id: terraform-init
-        run: |
-          terraform init -input=false -no-color -upgrade -reconfigure \ 
-            -backend-config=.backend/${{ inputs.environment }}.tfbackend
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
+        run: |
+          terraform init -input=false -no-color -upgrade -reconfigure -backend-config=.backend/${{ inputs.environment }}.tfbackend
+
+
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
