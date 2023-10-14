@@ -189,6 +189,7 @@ jobs:
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
           sops -e -i tfplan.tar.gz
+          echo "artifact size=$(du -h tfplan.tar.gz | awk '{print $1}')"
         continue-on-error: false
 
       - name: Upload Terraform artifacts
