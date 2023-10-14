@@ -30,9 +30,8 @@ jobs:
   pre-commit:
     environment: sandbox
     runs-on: ubuntu-latest
-    container: ghcr.io/flufi-io/docker-terraform-action:latest
+    container: ghcr.io/flufi-io/flufi-cli:latest
     steps:
-
       - name: checkout
         uses: actions/checkout@v3
         with:
