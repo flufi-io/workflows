@@ -130,7 +130,7 @@ jobs:
         id: terraform-init
         run: |
           eval `ssh-agent -s`
-          ssh-add - <<< '${{ env.SSH_KEY }}'
+          ssh-add - <<< base64 -d '${{ env.SSH_KEY }}'
           terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
