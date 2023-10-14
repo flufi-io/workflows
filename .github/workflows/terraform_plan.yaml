@@ -55,6 +55,8 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       ENV: ${{ inputs.environment }}
+      OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+      OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
