@@ -95,15 +95,6 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
-      - name: Load secret
-        uses: 1password/load-secrets-action@v1
-        with:
-          export-env: true
-        env:
-          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
-          GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
-
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_command
@@ -128,9 +119,29 @@ jobs:
           environment=$(echo "$comment" | awk '{print $3}')
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
             echo "valid=true" >> $GITHUB_OUTPUT
+            echo "environment=$environment" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
           fi
+
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        id: load_secret
+        with:
+          export-env: true
+        env:
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          GITHUB_TOKEN: op://flufi-${{ steps.check_valid_command.outputs.environment }}/github_actions/GITHUB_TOKEN
+
+      - name: check valid environment
+        id: check_valid_environment
+        env:
+          GITHUB_TOKEN: ${{ steps.load_secret.outputs.GITHUB_TOKEN }}
+        run: |
+          environment="${{ steps.check_valid_command.outputs.environment }}"
+          
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
             | jq -r '.environments[].name')
@@ -141,7 +152,6 @@ jobs:
             echo "Invalid command: environment, '${environment}' does not exist in the repository, '$env_list'}'" >&2
             exit 1
           fi
-
       - name: Extract environment and operation from command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: set_environment
