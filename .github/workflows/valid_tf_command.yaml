@@ -95,6 +95,15 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          GITHUB_TOKEN: op://flufi-${{ inputs.environment }}/github_actions/GITHUB_TOKEN
+
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_command
@@ -102,7 +111,7 @@ jobs:
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
             echo "Invalid command: comment must start with a slash"
-            exit 1
+            exit 0
           else
             comment="${comment#"/"}"
           fi
@@ -118,32 +127,21 @@ jobs:
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
           if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) \
-            && [[ "$environment" =~ ^[[:alpha:]]+$ ]]; then
+            && [[ "$environment" =~ ^[[:alnum:]]+$ ]]; then
             echo "valid=true" >> $GITHUB_OUTPUT
-            echo "environment=$environment" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
-            echo "Invalid command: comment must be in the format '/terraform <plan|apply> <environment>'"
+            echo "Invalid command: Must be '/terraform [plan|apply] [environment]'."
             exit 1
           fi
 
-      - name: Load secret
-        uses: 1password/load-secrets-action@v1
-        id: load_secret
-        with:
-          export-env: true
-        env:
-          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
-          GITHUB_TOKEN: op://flufi-${{ steps.check_valid_command.outputs.environment }}/github_actions/GITHUB_TOKEN
-
       - name: check valid environment
         id: check_valid_environment
-        env:
-          GITHUB_TOKEN: ${{ steps.load_secret.outputs.GITHUB_TOKEN }}
         run: |
-          environment="${{ steps.check_valid_command.outputs.environment }}"
-          
+          if [ "${{ steps.check_valid_command.outputs.valid }}" == "false" ]; then
+            echo "Invalid command: Must be '/terraform [plan|apply] [environment]'."
+            exit 1
+          fi
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
             | jq -r '.environments[].name')
