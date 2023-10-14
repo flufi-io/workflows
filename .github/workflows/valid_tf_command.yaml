@@ -102,7 +102,7 @@ jobs:
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
             echo "Invalid command: comment must start with a slash"
-            exit 0
+            exit 1
           else
             comment="${comment#"/"}"
           fi
@@ -122,6 +122,7 @@ jobs:
             echo "environment=$environment" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
+            echo "Invalid command: comment must be in the format '/terraform <plan|apply> <environment>'"
             exit 1
           fi
 
