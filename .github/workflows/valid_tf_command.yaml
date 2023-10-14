@@ -34,8 +34,7 @@ on:
         value: ${{ jobs.terraform_command_validation.outputs.commit_sha }}
       artifact_name:
         description: 'The path where the artifact is stored'
-        value: "plan-${{ jobs.terraform_command_validation.outputs.environment }}-${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz"
-
+        value: ${{ jobs.terraform_command_validation.outputs.artifact_name }}
 permissions: write-all
 
 jobs:
@@ -48,6 +47,7 @@ jobs:
       pr_number: ${{ steps.get_pr.outputs.pr_number }}
       repo: ${{ steps.get_pr.outputs.repo }}
       commit_sha: ${{ steps.get_pr.outputs.commit_sha }}
+      artifact_name: ${{ steps.set_environment.outputs.artifact_name }}
     steps:
       - name: Check if comment is from a Pull Request
         id: check_pr_comment
@@ -151,6 +151,8 @@ jobs:
           comment="${{ inputs.comment_body }}"
           export environment=$(echo "$comment" | awk '{print $3}')
           export operation=$(echo "$comment" | awk '{print $2}')
-
+          export artifact_name="plan-${environment}-${{ steps.get_pr.outputs.commit_sha }}.tar.gz"
+          
+          echo "artifact_name=$artifact_name" >> $GITHUB_OUTPUT
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT
