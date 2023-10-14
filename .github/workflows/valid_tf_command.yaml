@@ -38,7 +38,13 @@ on:
           plan-${{ jobs.terraform_command_validation.outputs.environment }}
           -${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: write
+
 jobs:
   terraform_command_validation:
     runs-on: ubuntu-latest
