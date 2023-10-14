@@ -135,9 +135,10 @@ jobs:
           echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
           chmod 600 ~/.ssh/config
           eval `ssh-agent -s`
-          echo "${{ env.SSH_KEY }}" | base64 -d > ~/.ssh/id_ed25519
-          chmod 400 ~/.ssh/id_ed25519
-          ssh-add ~/.ssh/id_ed25519
+          echo "${{ env.SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          ssh-add ~/.ssh/id_rsa
+          
 
       - name: Terraform Init
         id: terraform-init
