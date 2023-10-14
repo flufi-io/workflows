@@ -145,6 +145,7 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         id: setup-terraform
@@ -215,11 +216,15 @@ jobs:
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
       - name: terraform apply
         if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
-          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
+          op run --env-file secrets.env -- \
+            terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
