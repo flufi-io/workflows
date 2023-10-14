@@ -52,6 +52,9 @@ jobs:
   terraform_apply:
     if: ${{ inputs.operation == 'apply' }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ENV: ${{ inputs.environment }}
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
