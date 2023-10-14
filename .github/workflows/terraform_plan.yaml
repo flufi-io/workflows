@@ -126,11 +126,22 @@ jobs:
           ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
 
+      - name: ssh config
+        id: ssh_config
+        run: |
+          mkdir -p ~/.ssh
+          echo "Host *" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+          eval `ssh-agent -s`
+          echo "${{ env.SSH_KEY }}" | base64 -d > ~/.ssh/id_ed25519
+          chmod 400 ~/.ssh/id_ed25519
+          ssh-add ~/.ssh/id_ed25519
+
       - name: Terraform Init
         id: terraform-init
         run: |
-          eval `ssh-agent -s`
-          ssh-add - <<< base64 -d <<< $SSH_KEY
           terraform init -input=false -no-color -upgrade -reconfigure
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
