@@ -38,7 +38,7 @@ jobs:
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
     needs: [ terraform_command_validation ]
-    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@main
+    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@op-terratest
     secrets: inherit
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
