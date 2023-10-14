@@ -39,6 +39,7 @@ on:
           -${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz
 
 permissions: write-all
+
 jobs:
   terraform_command_validation:
     runs-on: ubuntu-latest
@@ -131,7 +132,7 @@ jobs:
             echo "valid=true" >> $GITHUB_OUTPUT
             echo "environment=${environment}" >> $GITHUB_OUTPUT
           else
-            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
+            echo "Invalid command: environment, '${environment}' does not exist in the repository, '$env_list'}'" >&2
             exit 1
           fi
 
