@@ -13,6 +13,10 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
+      secrets_path:
+        description: 'Path to the secrets file'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -33,10 +37,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           path: main
+
       - name: Set up pre-commit hooks
         run: pre-commit install --install-hooks
         working-directory: main
 
       - name: Run pre-commit checks
-        run: pre-commit run -a
-        working-directory: main
+        id: terraform_modules
+        run: |
+          find . -type f -name 'secrets.env' -print0 | xargs -0 -I {} op run --env-file {} -- pre-commit run -a
