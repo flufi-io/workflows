@@ -52,6 +52,9 @@ on:
 jobs:
   terraform_plan:
     if: ${{ inputs.operation == 'plan' }}
+    environment: ${{ inputs.environment }}
+    env:
+      ENV: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
