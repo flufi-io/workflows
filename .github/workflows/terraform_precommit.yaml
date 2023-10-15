@@ -44,5 +44,12 @@ jobs:
 
       - name: Run pre-commit checks
         id: terraform_modules
+        working-directory: main
         run: |
-          find . -type f -name 'secrets.env' -print0 | xargs -0 -I {} op run --env-file {} -- pre-commit run -a
+          FILES=$(find . -type f -name 'secrets.env' -not -path '*/.terraform/*' -not -path '*/.external_modules/*')
+          COUNT=$(echo "$FILES" | wc -l)
+          if [ "$COUNT" -ne 1 ]; then
+            echo "Expected exactly one secrets.env file, found $COUNT"
+            exit 1
+          fi
+          op run --env-file "$FILES" -- pre-commit run -a
