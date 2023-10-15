@@ -25,6 +25,8 @@ permissions:
 env:
   DOCKER_USERNAME: ${{ github.actor }}
   DOCKER_PASSWORD: ${{ secrets.github_token }}
+  OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+  OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
 
 jobs:
   pre-commit:
