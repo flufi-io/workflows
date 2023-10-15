@@ -27,6 +27,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.github_token }}
   OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
   OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+  ENV: sandbox
 
 jobs:
   pre-commit:
