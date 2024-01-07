@@ -20,31 +20,29 @@ permissions:
 
 jobs:
   terratest:
-    environment: sandbox
     runs-on: ubuntu-latest
+    environment: sandbox
+    container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
-      - name: configure aws credentials
-        id: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::732758452413:role/github-oidc
-          aws-region: us-east-1
-
       - name: checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
           path: main
 
-      - name: install sops
+      - name: Run pre-commit checks
         run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.8.1/sops_3.8.1_amd64.deb
-          sudo dpkg -i sops_3.8.1_amd64.deb
+          tfenv use latest
+          pre-commit install --install-hooks
+          pre-commit autoupdate &&  pre-commit run -a
+        working-directory: main
 
-      - uses: actions/setup-go@v4
+      - name: configure aws credentials
+        id: configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          cache-dependency-path: main/tests/complete/go.mod
-          go-version: '>=1.21.0'
+          role-to-assume: arn:aws:iam::732758452413:role/github-oidc
+          aws-region: us-east-1
 
       - name: run terratest
         working-directory: main/tests/complete
