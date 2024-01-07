@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   terratest:
+    environment: sandbox
     runs-on: ubuntu-latest
     steps:
       - name: configure aws credentials
