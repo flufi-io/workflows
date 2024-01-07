@@ -24,9 +24,9 @@ jobs:
     steps:
       - name: configure aws credentials
         id: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: github-oidc
+          role-to-assume: arn:aws:iam::732758452413:role/github-oidc
           aws-region: us-east-1
 
       - name: checkout
