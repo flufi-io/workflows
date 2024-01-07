@@ -40,13 +40,11 @@ jobs:
           cache-dependency-path: main/tests/complete/go.mod
           go-version: '>=1.21.0'
 
-#      - name: run terratest
-#        id: terratest
-#        working-directory: main/tests/complete
-#        run: |
-#          export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-#          go mod tidy > /dev/null
-#          go test -v -count=1 -timeout 120m ./...
+      - name: run terratest
+        id: terratest
+        working-directory: main/tests/complete
+        run: |
+          export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
 
       - name: Merge Pull Request
         if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success'
