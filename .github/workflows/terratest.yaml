@@ -14,9 +14,7 @@ on:
         required: true
         type: string
 
-permissions:
-  id-token: write
-  contents: read
+permissions: write-all
 
 jobs:
   terratest:
@@ -30,13 +28,6 @@ jobs:
           ref: ${{ inputs.ref }}
           path: main
 
-      - name: Run pre-commit checks
-        run: |
-          tfenv use latest
-          pre-commit install --install-hooks
-          pre-commit autoupdate &&  pre-commit run -a
-        working-directory: main
-
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -45,8 +36,18 @@ jobs:
           aws-region: us-east-1
 
       - name: run terratest
+        id: terratest
         working-directory: main/tests/complete
         run: |
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod tidy > /dev/null
           go test -v -count=1 -timeout 120m ./...
+
+      - name: Merge Pull Request
+        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success' && steps.pre-commit.outcome == 'success'
+        run: |
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo "Merging PR #${PR_NUMBER}"
+          gh pr merge $PR_NUMBER --auto --squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
