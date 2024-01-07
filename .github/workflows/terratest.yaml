@@ -18,36 +18,16 @@ permissions:
   id-token: write
   contents: read
 
-
 jobs:
   terratest:
     runs-on: ubuntu-latest
     steps:
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now able
-          # to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: Load  1password credentials
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env:
-          SECRETS: op://flufi-sandbox/cicd/json
-
-
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ fromJson(env.SECRETS).aws.role }}
-          aws-region: ${{ fromJson(env.SECRETS).aws.region }}
-
+          role-to-assume: github-oidc
+          aws-region: us-east-1
 
       - name: checkout
         uses: actions/checkout@v3
@@ -57,13 +37,8 @@ jobs:
 
       - name: install sops
         run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
-
-      - name: decrypt secrets
-        run: |
-          cd main/examples/complete
-          sops -d terraform.enc > terraform.tfvars
+          wget https://github.com/mozilla/sops/releases/download/v3.8.1/sops_3.8.1_amd64.deb
+          sudo dpkg -i sops_3.8.1_amd64.deb
 
       - uses: actions/setup-go@v4
         with:
