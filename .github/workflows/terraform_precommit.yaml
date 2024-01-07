@@ -25,7 +25,7 @@ env:
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
-    container: ghcr.io/flufi-io/docker-terraform-action:latest
+    container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
 
       - name: checkout
@@ -33,10 +33,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           path: main
-      - name: Set up pre-commit hooks
-        run: pre-commit install --install-hooks
-        working-directory: main
 
       - name: Run pre-commit checks
-        run: pre-commit run -a
+        run: |
+          tfenv use latest
+          pre-commit install --install-hooks
+          pre-commit autoupdate &&  pre-commit run -a
         working-directory: main
