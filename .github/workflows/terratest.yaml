@@ -47,3 +47,13 @@ jobs:
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod tidy > /dev/null
           go test -v -count=1 -timeout 120m ./...
+
+      - name: Merge Pull Request
+        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success'
+        run: |
+          brew install gh
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo "Merging PR #${PR_NUMBER}"
+          gh pr merge "${PR_NUMBER}" --squash --auto
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
