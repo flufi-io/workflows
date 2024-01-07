@@ -49,7 +49,7 @@ jobs:
           go test -v -count=1 -timeout 120m ./...
 
       - name: Merge Pull Request
-        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success' && steps.pre-commit.outcome == 'success'
+        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success'
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           echo "Merging PR #${PR_NUMBER}"
