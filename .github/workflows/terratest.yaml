@@ -47,17 +47,3 @@ jobs:
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod tidy > /dev/null
           go test -v -count=1 -timeout 120m ./...
-
-      - name: Merge Pull Request
-        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success'
-        run: |
-          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          echo "Merging PR #${PR_NUMBER}"
-          curl \
-          -X PUT \
-          -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
-          -d '{"commit_title":"Automated Merge","commit_message":"","merge_method":"squash"}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
