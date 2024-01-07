@@ -44,12 +44,12 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           cache-dependency-path: main/tests/go.mod
+
           go-version: '>=1.21.0'
 
       - name: run terratest
         working-directory: main/tests
         run: |
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-          go mod init test
           go mod tidy > /dev/null
           go test -v -count=1 -timeout 120m ./...
