@@ -48,7 +48,7 @@ jobs:
           go-version: '>=1.21.0'
 
       - name: run terratest
-        working-directory: main/tests
+        working-directory: main/tests/complete
         run: |
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod tidy > /dev/null
