@@ -34,9 +34,10 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::732758452413:role/github-oidc
           aws-region: us-east-1
+
       - uses: actions/setup-go@v4
         with:
-          cache-dependency-path: main/tests/go.mod
+          cache-dependency-path: main/tests/complete/go.mod
           go-version: '>=1.21.0'
 
       - name: run terratest
@@ -52,6 +53,11 @@ jobs:
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           echo "Merging PR #${PR_NUMBER}"
-          gh pr merge $PR_NUMBER --auto --squash
+          curl \
+            -X PUT \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge \
+            -d '{"commit_title":"Automated Merge","commit_message":"","sha":"","merge_method":"squash"}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
