@@ -40,6 +40,10 @@ jobs:
           cache-dependency-path: main/tests/complete/go.mod
           go-version: '>=1.21.0'
 
+      - name: setup tofu
+        run:
+          tenv tofu use latest
+
       - name: run terratest
         id: terratest
         working-directory: main/tests/complete
