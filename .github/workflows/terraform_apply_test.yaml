@@ -18,22 +18,6 @@ jobs:
     with:
       comment_body: ${{ github.event.comment.body }}
 
-  terraform_plan:
-    if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
-    needs: [ terraform_command_validation ]
-    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@multiple-tfvars-apply
-    with:
-      environment: ${{ needs.terraform_command_validation.outputs.environment }}
-      operation: ${{ needs.terraform_command_validation.outputs.operation }}
-      working-directory: terraform
-      artifact_name: ${{ needs.terraform_command_validation.outputs.artifact_name }}
-      pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
-      commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
-      repo: ${{ needs.terraform_command_validation.outputs.repo }}
-      env_vars: |
-        TF_VAR_aws_region=sarasa
-        TF_VAR_oidc_role=sarasa
-    secrets: inherit
   terraform_apply:
     needs: [terraform_command_validation]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
