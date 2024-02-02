@@ -94,7 +94,7 @@ jobs:
         id: setup
         run: |
           echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+          echo "artifact=${{ inputs.environment }}-${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
           echo "${{ inputs.env_vars }}" | while read -r line
           do
             echo "$line" >> $GITHUB_ENV
