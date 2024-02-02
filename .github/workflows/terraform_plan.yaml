@@ -243,4 +243,3 @@ jobs:
             -f "environment=${{ inputs.environment }}" \
             -f "auto_inactive=true" \
             -f "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
-          
