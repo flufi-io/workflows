@@ -51,61 +51,51 @@ on:
 
 jobs:
   terraform_plan:
-    if: ${{ inputs.operation == 'plan' }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
-        artifact: ${{ steps.setup.outputs.artifact }}
+      artifact: ${{ steps.setup.outputs.artifact }}
     steps:
-      - name: Add link to workflow run in PR comment
-        id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-          job_name="${{ github.job }}"
-          comment="You can check the current run of the $job_name [here]($link)"
-          curl --request POST \
-            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            --header 'content-type: application/json' \
-            --data "{\"body\": \"${comment}\"}"
-            - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now able
-          # to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: Load  1password credentials
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env:
-          SECRETS: op://flufi-sandbox/cicd/json
-
+      #      - name: Add link to workflow run in PR comment
+      #        id: add_link_to_pr_comment
+      #        env:
+      #          GITHUB_TOKEN: ${{ secrets.github_token }}
+      #          RUN_ID: ${{ github.run_id }}
+      #        run: |
+      #          pr_number="${{ inputs.pr_number }}"
+      #          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+      #          job_name="${{ github.job }}"
+      #          comment="You can check the current run of the $job_name [here]($link)"
+      #          curl --request POST \
+      #            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
+      #            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+      #            --header 'content-type: application/json' \
+      #            --data "{\"body\": \"${comment}\"}"
+      #            - name: Configure 1Password Service Account
 
       - name: configure aws credentials
         id: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ fromJson(env.SECRETS).aws.role }}
-          aws-region: ${{ fromJson(env.SECRETS).aws.region }}
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-
-      - name: setup
-        id: setup
+      - name: install sops
+        id: install-sops
         run: |
-          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-          echo "${{ inputs.env_vars }}" | while read -r line
-          do
-            echo "$line" >> $GITHUB_ENV
-          done
+          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
+          sudo dpkg -i sops_3.8.0_amd64.deb
+
+      #
+      #      - name: setup
+      #        id: setup
+      #        run: |
+      #          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+      #          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+      #          echo "${{ inputs.env_vars }}" | while read -r line
+      #          do
+      #            echo "$line" >> $GITHUB_ENV
+      #          done
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -118,12 +108,23 @@ jobs:
         id: checkout
         uses: actions/checkout@v3
         with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
+          ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
+
+      - name: decrypt terraform secrets
+        working-directory: ${{ inputs.working-directory }}
+        shell: bash
+        run: |
+          sops -d secrets.${{ inputs.environment }}.auto.tfvars.json.enc > secrets.${{ inputs.environment }}.auto.tfvars.json
+        continue-on-error: true
 
       - name: Terraform Init
         id: terraform-init
-        run: terraform init -input=false -no-color -upgrade -reconfigure
+        run: |
+          terraform init -input=false \
+            -no-color \
+            -backend-config=.config/config.${{ inputs.environment }}.tfbackend \
+            -reconfigure -upgrade
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
 
@@ -131,36 +132,38 @@ jobs:
         id: terraform-plan
         working-directory: ${{ inputs.working-directory }}
         run: |
-          terraform plan -out=tfplan -var-file=${{ inputs.environment }}.tfvars  -input=false -no-color
+          terraform plan -out=tfplan  \
+            -input=false \
+            -no-color \
+            -backend-config=.config/config.${{ inputs.environment }}.tfbackend \
+            -var-file=${{ inputs.environment }}.tfvars.json
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
         continue-on-error: false
 
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v2
-        with:
-          api-key: ${{ fromJson(env.SECRETS).infracost.api_key }}
-
-      - name: Generate Infracost JSON
-        run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
-        working-directory: ${{ inputs.working-directory }}
-        continue-on-error: true
-
-      - name: Post Infracost comment
-        run: |
-          infracost comment github --path /tmp/infracost.json \
-                                   --repo ${{ inputs.repo }} \
-                                   --github-token ${{ github.token }} \
-                                   --pull-request ${{ inputs.pr_number}} \
-                                   --behavior update \
-                                   --tag ${{ inputs.environment }}
-        continue-on-error: true
-        working-directory: ${{ inputs.working-directory }}
+      #      - name: Setup Infracost
+      #        uses: infracost/actions/setup@v2
+      #        with:
+      #          api-key: ${{ fromJson(env.SECRETS).infracost.api_key }}
+      #
+      #      - name: Generate Infracost JSON
+      #        run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
+      #        working-directory: ${{ inputs.working-directory }}
+      #        continue-on-error: true
+      #
+      #      - name: Post Infracost comment
+      #        run: |
+      #          infracost comment github --path /tmp/infracost.json \
+      #                                   --repo ${{ inputs.repo }} \
+      #                                   --github-token ${{ github.token }} \
+      #                                   --pull-request ${{ inputs.pr_number}} \
+      #                                   --behavior update \
+      #                                   --tag ${{ inputs.environment }}
+      #        continue-on-error: true
+      #        working-directory: ${{ inputs.working-directory }}
 
       - name: Post Terraform plan output as PR comment
         id: terraform-plan-comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           plan_output=$(cat ${{ inputs.working-directory }}/plan_output.txt)
           max_comment_size=65535
