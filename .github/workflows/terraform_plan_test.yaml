@@ -8,6 +8,7 @@ name: terraform plan test
 on:
   issue_comment:
     types: [ created ]
+
 permissions: write-all
 
 jobs:
@@ -34,11 +35,7 @@ jobs:
       env_vars: |
         TF_VAR_aws_region=sarasa
         TF_VAR_oidc_role=sarasa
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OIDC_ROLE: ${{ secrets.OIDC_ROLE }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      TF_TOKEN: ${{ secrets.TF_TOKEN }} # Optional: You can omit this line if you don't use Terraform Cloud.
+    secrets: inherit
 
 
   download_plan:
