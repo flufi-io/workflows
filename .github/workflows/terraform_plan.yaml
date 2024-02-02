@@ -186,9 +186,10 @@ jobs:
       - name: Save Terraform state, plan, and encrypt
         id: save-and-encrypt-artifact
         working-directory: ${{ inputs.working-directory }}
+        shell: bash
         run: |
           tar czf ${{ steps.setup.outputs.artifact }}.tar.gz .terraform tfplan
-          sops -e -i {{ steps.setup.outputs.artifact }}.tar.gz
+          sops -e -i ${{ steps.setup.outputs.artifact }}.tar.gz
         continue-on-error: false
 
       - name: Upload Terraform artifacts
