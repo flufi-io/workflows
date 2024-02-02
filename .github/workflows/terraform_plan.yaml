@@ -116,7 +116,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: |
-          bash secrets.sh
+          bash secrets.sh -d ${{ inputs.environment }}
         continue-on-error: true
 
       - name: Terraform Init
