@@ -14,9 +14,7 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
-
+permissions: write-all
 
 env:
   DOCKER_USERNAME: ${{ github.actor }}
@@ -27,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
-
       - name: checkout
         uses: actions/checkout@v3
         with:

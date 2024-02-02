@@ -6,7 +6,8 @@ variable "special" {
   description = "Include special characters"
   type        = bool
 }
-variable "override_special" {
+variable "secret" {
+  description = "The secret to be generated"
   type        = string
-  description = "Override special characters"
+  sensitive   = true
 }
