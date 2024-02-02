@@ -49,6 +49,8 @@ on:
         default: ''
 
 permissions: write-all
+env:
+  GH_TOKEN: ${{ secrets.github_token }}
 
 jobs:
   terraform_plan:
@@ -87,16 +89,16 @@ jobs:
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
 
-      #
-      #      - name: setup
-      #        id: setup
-      #        run: |
-      #          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-      #          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-      #          echo "${{ inputs.env_vars }}" | while read -r line
-      #          do
-      #            echo "$line" >> $GITHUB_ENV
-      #          done
+
+      - name: setup
+        id: setup
+        run: |
+          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+          echo "artifact=${{ inputs.environment }}-${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
+          echo "${{ inputs.env_vars }}" | while read -r line
+          do
+            echo "$line" >> $GITHUB_ENV
+          done
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -183,18 +185,19 @@ jobs:
 
       - name: Save Terraform state, plan, and encrypt
         id: save-and-encrypt-artifact
+        working-directory: ${{ inputs.working-directory }}
+        shell: bash
         run: |
-          tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
-          sops -e -i ${{ steps.setup.outputs.artifact }}
+          tar czf ${{ steps.setup.outputs.artifact }}.tar.gz .terraform tfplan
+          sops -e -i ${{ steps.setup.outputs.artifact }}.tar.gz
         continue-on-error: false
 
       - name: Upload Terraform artifacts
         id: upload-artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          path: ${{ steps.setup.outputs.artifact }}
+          path: ${{ inputs.working-directory }}/${{ steps.setup.outputs.artifact }}.tar.gz
           name: ${{ steps.setup.outputs.artifact_name }}
+          if-no-files-found: error
           retention-days: 1
         continue-on-error: false
