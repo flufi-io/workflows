@@ -89,16 +89,16 @@ jobs:
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
 
-      #
-      #      - name: setup
-      #        id: setup
-      #        run: |
-      #          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-      #          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
-      #          echo "${{ inputs.env_vars }}" | while read -r line
-      #          do
-      #            echo "$line" >> $GITHUB_ENV
-      #          done
+
+      - name: setup
+        id: setup
+        run: |
+          echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+          echo "artifact=${{ inputs.working-directory }}/${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+          echo "${{ inputs.env_vars }}" | while read -r line
+          do
+            echo "$line" >> $GITHUB_ENV
+          done
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2

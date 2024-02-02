@@ -48,6 +48,10 @@ on:
         type: string
         default: ''
 
+permissions: write-all
+env:
+  GH_TOKEN: ${{ secrets.github_token }}
+
 jobs:
   terraform_apply:
     if: ${{ inputs.operation == 'apply' }}
@@ -91,8 +95,6 @@ jobs:
 
       - name: Check for code owner approval
         id: check_approval
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
           code_owner_approval=false
@@ -140,10 +142,11 @@ jobs:
 
       - name: configure aws credentials
         id: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.OIDC_ROLE }}
+          role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
+
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
