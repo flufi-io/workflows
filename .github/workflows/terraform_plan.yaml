@@ -201,3 +201,19 @@ jobs:
           if-no-files-found: error
           retention-days: 1
         continue-on-error: false
+
+      - name: set-active-deployment
+        id: set-active-deployment-plan
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments \
+            -f "environment=${{ inputs.environment }}" \
+            -f "ref=refs/pull/${{ inputs.pr_number }}/head" \
+            -f "task=terraform:plan" \
+            -f "payload={\"artifact_id\":\"${{ steps.upload-artifact.artifact-id }}\"}" 
+            
+          
