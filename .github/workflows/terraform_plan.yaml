@@ -48,6 +48,7 @@ on:
         type: string
         default: ''
 
+permissions: write-all
 
 jobs:
   terraform_plan:
