@@ -83,6 +83,28 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
+      - name: List Deployments
+        id: list_deployments
+        shell: bash
+        run: |
+          response=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/deployments \
+          -F ref=${{ github.sha }} \
+          -F task=terraform:plan \
+          -F environment=${{ inputs.environment }})
+          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
+
+      - name: Get Plan Deployment
+        id: get_plan_deployment
+        shell: bash
+        run: |
+          response=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/deployments/${{ steps.list_deployments.outputs.deployment_id }})
+
       - name: Fetch PR reviews
         id: fetch_pr_reviews
         env:
@@ -162,11 +184,9 @@ jobs:
           repository: ${{ inputs.repo }}
 
       - name: Download Terraform artifacts
-        id: download-artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          search_artifacts: true
-          name: ${{ steps.setup.outputs.artifact_name }}
+          run-id: ${{ github.run_id }}
 
       - name: Add PR comment if Download Terraform artifacts fails
         if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}

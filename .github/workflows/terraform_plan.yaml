@@ -216,12 +216,11 @@ jobs:
             -F "environment=${{ inputs.environment }}" \
             -F "task=terraform:plan" \
             -F "auto_merge=false" \
-            -F "ref=${{ github.sha }}") \
-            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
+            -F "ref=${{ github.sha }}" \
+            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}" \
             -F "payload=$(echo "{\"environment\": \"${{ inputs.environment }}\",
               \"artifact-id\": \"${{ steps.upload-artifact.outputs.artifact-id }}\",
-              \"run-id\": \"${{ github.run_id }}\",
-              | jq -c .)"
+              \"run-id\": \"${{ github.run_id }}\"}" | jq -c .)")
           echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
 
 
