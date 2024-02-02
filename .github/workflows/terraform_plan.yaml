@@ -136,7 +136,6 @@ jobs:
           terraform plan -out=tfplan  \
             -input=false \
             -no-color \
-            -backend-config=.config/config.${{ inputs.environment }}.tfbackend \
             -var-file=${{ inputs.environment }}.tfvars.json
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
