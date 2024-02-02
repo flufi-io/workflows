@@ -186,9 +186,7 @@ jobs:
       - name: Save Terraform state, plan, and encrypt
         id: save-and-encrypt-artifact
         run: |
-          tar czf ${{ steps.setup.outputs.artifact }} ${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
+          tar czf ${{ steps.setup.outputs.artifact }}-${{ inputs.working-directory }}/.terraform ${{ inputs.working-directory }}/tfplan
           sops -e -i ${{ steps.setup.outputs.artifact }}
         continue-on-error: false
 
