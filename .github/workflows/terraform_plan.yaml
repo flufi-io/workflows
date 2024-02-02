@@ -104,7 +104,7 @@ jobs:
         id: create-deployment
         shell: bash
         run: |
-          gh api \
+          response=$(gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -112,7 +112,8 @@ jobs:
             -F "environment=${{ inputs.environment }}" \
             -F "task=terraform:plan" \
             -F "auto_merge=false" \
-            -F "ref=${{ github.sha }}"
+            -F "ref=${{ github.sha }}")
+          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
 
       - name: Set Deployment Status in progress
         id: set-deployment-status-in-progress
@@ -122,7 +123,7 @@ jobs:
             --method POST \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}statuses \
             -F "state=in_progress" \
             -F "environment=${{ inputs.environment }}" \
             -F "auto_inactive=true" \
@@ -238,7 +239,7 @@ jobs:
             --method POST \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
             -F "state=pending" \
             -F "environment=${{ inputs.environment }}" \
             -F "auto_inactive=true" \
