@@ -220,6 +220,7 @@ jobs:
             -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}" \
             -F "payload=$(echo "{\"environment\": \"${{ inputs.environment }}\",
               \"artifact-id\": \"${{ steps.upload-artifact.outputs.artifact-id }}\",
+              \"artifact-name\": \"${{ steps.setup.outputs.artifact }}\",
               \"run-id\": \"${{ github.run_id }}\"}" | jq -c .)")
           echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
 
