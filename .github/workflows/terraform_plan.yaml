@@ -109,10 +109,10 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ inputs.repo }}/deployments \
-            -f "environment=${{ inputs.environment }}" \
-            -f "task=terraform:plan" \
-            -f "auto_merge=false" \
-            -f "ref=${{ github.sha }}"
+            -F "environment=${{ inputs.environment }}" \
+            -F "task=terraform:plan" \
+            -F "auto_merge=false" \
+            -F "ref=${{ github.sha }}"
 
       - name: Set Deployment Status in progress
         id: set-deployment-status-in-progress
@@ -123,10 +123,10 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
-            -f "state=in_progress" \
-            -f "environment=${{ inputs.environment }}" \
-            -f "auto_inactive=true" \
-            -f "description=Terraform Plan started for ${{ inputs.environment }}"
+            -F "state=in_progress" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Plan started for ${{ inputs.environment }}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -239,7 +239,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
-            -f "state=pending" \
-            -f "environment=${{ inputs.environment }}" \
-            -f "auto_inactive=true" \
-            -f "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
+            -F "state=pending" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
