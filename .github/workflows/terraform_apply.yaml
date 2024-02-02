@@ -97,7 +97,7 @@ jobs:
             -F "task=terraform:apply" \
             -F "auto_merge=false" \
             -F "ref=${{ github.sha }}" \
-            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}" \
+            -F "description=Terraform Apply in proggress for ${{ inputs.environment }}")
           echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
 
       - name: Set Deployment Status In progress
