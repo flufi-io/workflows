@@ -8,12 +8,8 @@ name: terraform command validation test
 on:
   issue_comment:
     types: [ created ]
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
 
-
+permissions: write-all
 jobs:
   terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
