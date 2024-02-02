@@ -56,6 +56,7 @@ jobs:
   terraform_apply:
     if: ${{ inputs.operation == 'apply' }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
@@ -83,6 +84,36 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
+      - name: Create Terraform Apply deployment
+        id: create-deployment
+        shell: bash
+        run: |
+          response=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments \
+            -F "environment=${{ inputs.environment }}" \
+            -F "task=terraform:apply" \
+            -F "auto_merge=false" \
+            -F "ref=${{ github.sha }}" \
+            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}" \
+          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
+
+      - name: Set Deployment Status In progress
+        id: set-deployment-status-in-progress
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
+            -F "state=in_progress" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Apply in proggress for  ${{ inputs.environment }}"
+
       - name: List Deployments
         id: list_deployments
         shell: bash
@@ -95,7 +126,7 @@ jobs:
             -F ref=${{ github.sha }} \
             -F task=terraform:plan \
             -F environment=${{ inputs.environment }})
-          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
+          echo "deployment_id=$(echo $response | jq -r '.[0].id')" >> $GITHUB_OUTPUT
 
       - name: Get Plan Deployment
         id: get_plan_deployment
@@ -267,3 +298,17 @@ jobs:
             comment_payload=$(jq -n --arg body "$chunk" '{"body": $body}')
             gh issue comment "${{ inputs.pr_number }}" -R "${{ inputs.repo }}" -b "$chunk"
           done
+
+      - name: Set Deployment Status in Success
+        id: set-deployment-status-in-success
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
+            -F "state=success" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Applied successfully in ${{ inputs.environment }}"
