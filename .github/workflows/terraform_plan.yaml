@@ -215,5 +215,6 @@ jobs:
             -f "ref=refs/pull/${{ inputs.pr_number }}/head" \
             -f "task=terraform:plan" \
             -f "payload={\"artifact_id\":\"${{ steps.upload-artifact.artifact-id }}\"}" 
+            -f "auto_merge=false"
             
           
