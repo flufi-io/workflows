@@ -110,9 +110,9 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ inputs.repo }}/deployments \
             -f "environment=${{ inputs.environment }}" \
-            -f "ref=${{ inputs.commit_sha }}" \
             -f "task=terraform:plan" \
-            -f "auto_merge=false"
+            -f "auto_merge=false" \
+            -f "ref=${{ github.sha }}"
 
       - name: Set Deployment Status in progress
         id: set-deployment-status-in-progress
