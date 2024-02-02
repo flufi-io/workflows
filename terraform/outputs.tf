@@ -1,4 +1,4 @@
 output "random_password" {
-  value       = module.random.random_password
+  value       = local.password
   description = "this is a dummy password"
 }

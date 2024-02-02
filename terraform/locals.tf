@@ -1,3 +1,3 @@
 locals {
-  password = join("", random_password.password.result, var.secret)
+  password = concat("", random_password.password.result, var.secret)
 }
