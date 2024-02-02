@@ -116,7 +116,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: |
-          sops -d secrets.${{ inputs.environment }}.auto.tfvars.json.enc > secrets.${{ inputs.environment }}.auto.tfvars.json
+          bash secrets.sh -d ${{ inputs.environment }}
         continue-on-error: true
 
       - name: Terraform Init
@@ -136,7 +136,7 @@ jobs:
           terraform plan -out=tfplan  \
             -input=false \
             -no-color \
-            -var-file=${{ inputs.environment }}.tfvars.json
+            -var-file=fixtures.${{ inputs.environment }}.tfvars.json
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
         continue-on-error: false

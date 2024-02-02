@@ -9,12 +9,14 @@ on:
   issue_comment:
     types: [ created ]
 
+
 permissions: write-all
+
+
 jobs:
   terraform_command_validation:
     uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@main
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
     with:
       comment_body: ${{ github.event.comment.body }}
 

@@ -14,7 +14,7 @@ on:
         type: string
     secrets:
       GH_TOKEN:
-        required: true
+        required: false
 
     outputs:
       environment:
