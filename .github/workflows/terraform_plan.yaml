@@ -77,8 +77,8 @@ jobs:
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.aws_role }}
-          aws-region: ${{ secrets.aws.region }}
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: install sops
         id: install-sops
