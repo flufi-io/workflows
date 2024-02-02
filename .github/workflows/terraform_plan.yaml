@@ -49,6 +49,8 @@ on:
         default: ''
 
 permissions: write-all
+env:
+  GH_TOKEN: ${{ secrets.github_token }}
 
 jobs:
   terraform_plan:
