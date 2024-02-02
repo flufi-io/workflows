@@ -116,7 +116,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: |
-          sops -d secrets.${{ inputs.environment }}.auto.tfvars.json.enc > secrets.${{ inputs.environment }}.auto.tfvars.json
+          sops -d secrets.${{ inputs.environment }}.auto.tfvars.enc.json > secrets.${{ inputs.environment }}.auto.tfvars.json
         continue-on-error: true
 
       - name: Terraform Init
