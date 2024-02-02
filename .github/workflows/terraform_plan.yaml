@@ -114,8 +114,8 @@ jobs:
             -f "task=terraform:plan" \
             -f "auto_merge=false"
 
-      - name: Set Deployment Status
-        id: set-deployment-status
+      - name: Set Deployment Status in progress
+        id: set-deployment-status-in-progress
         shell: bash
         run: |
           gh api \
@@ -230,8 +230,8 @@ jobs:
           retention-days: 1
         continue-on-error: false
 
-      - name: Set Deployment Status
-        id: set-deployment-status
+      - name: Set Deployment Status pending to be applied
+        id: set-deployment-status-pending
         shell: bash
         run: |
           gh api \
