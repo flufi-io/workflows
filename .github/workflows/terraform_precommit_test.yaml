@@ -8,8 +8,7 @@ name: terraform pre-commit test
 on:
   pull_request:
 
-permissions:
-  contents: read
+permissions: write-all
 
 
 jobs:
