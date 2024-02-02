@@ -1,5 +1,5 @@
 terraform {
-  backend "local" {
-    path = "terraform.tfstate"
+  backend "s3" {
+	key = "workflows.tfstate" # same name as the repository
   }
 }

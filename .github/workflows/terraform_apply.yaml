@@ -50,7 +50,7 @@ on:
 
 jobs:
   terraform_apply:
-    if: ${{ inputs.operation == 'apply' }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
