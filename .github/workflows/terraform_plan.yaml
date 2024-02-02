@@ -100,6 +100,34 @@ jobs:
             echo "$line" >> $GITHUB_ENV
           done
 
+      - name: Create Deployment
+        id: create-deployment
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments \
+            -f "environment=${{ inputs.environment }}" \
+            -f "ref=${{ inputs.commit_sha }}" \
+            -f "task=terraform:plan" \
+            -f "auto_merge=false"
+
+      - name: Set Deployment Status
+        id: set-deployment-status
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
+            -f "state=in_progress" \
+            -f "environment=${{ inputs.environment }}" \
+            -f "auto_inactive=true" \
+            -f "description=Terraform Plan started for ${{ inputs.environment }}"
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         id: setup-terraform
@@ -197,25 +225,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ${{ inputs.working-directory }}/${{ steps.setup.outputs.artifact }}.tar.gz
-          name: ${{ steps.setup.outputs.artifact_name }}
+          name: ${{ steps.setup.outputs.artifact }}
           if-no-files-found: error
           retention-days: 1
         continue-on-error: false
-
-      - name: Create Deployment
-        id: create-deployment
-        shell: bash
-        run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ inputs.repo }}/deployments \
-            -f "environment=${{ inputs.environment }}" \
-            -f "ref=refs/pull/${{ inputs.pr_number }}/head" \
-            -f "task=terraform:plan" \
-            -f "payload={\"artifact_id\":\"${{ steps.upload-artifact.artifact-id }}\"}" 
-            -f "auto_merge=false"
 
       - name: Set Deployment Status
         id: set-deployment-status
@@ -226,7 +239,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.id }}/statuses \
-            -f "state=success" \
+            -f "state=pending" \
             -f "environment=${{ inputs.environment }}" \
             -f "auto_inactive=true" \
             -f "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
