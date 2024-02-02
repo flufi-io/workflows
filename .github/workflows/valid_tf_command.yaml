@@ -124,16 +124,16 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
-          env_list=$(gh api repos/${{ github.repository }}/environments \
-            --header "Accept: application/vnd.github+json" \
-            | jq -r '.environments[].name')
-          if [[ "$env_list" =~ (^|,)${environment}($|,) ]]; then
-            echo "valid=true" >> $GITHUB_OUTPUT
-            echo "environment=${environment}" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
-            exit 1
-          fi
+#          env_list=$(gh api repos/${{ github.repository }}/environments \
+#            --header "Accept: application/vnd.github+json" \
+#            | jq -r '.environments[].name')
+#          if [[ "$env_list" =~ (^|,)${environment}($|,) ]]; then
+#            echo "valid=true" >> $GITHUB_OUTPUT
+#            echo "environment=${environment}" >> $GITHUB_OUTPUT
+#          else
+#            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
+#            exit 1
+#          fi
 
       - name: Extract environment and operation from command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
