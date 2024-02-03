@@ -143,18 +143,43 @@ jobs:
 
       - name: Download Terraform artifacts
         uses: actions/download-artifact@v4
+        id: download-artifact
         with:
           run-id: ${{ steps.get_plan_deployment.outputs.run-id }}
           name: ${{ steps.get_plan_deployment.outputs.artifact-name }}
           github-token: ${{ env.GH_TOKEN }}
           path: ${{ inputs.working-directory }}
 
+      - name: Add PR comment if Download Terraform artifacts fails
+        if: ${{ steps.download-artifact.outcome == 'failure' }}
+        run: |
+          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
+          comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+          gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
+          exit 1
+        continue-on-error: false
+
       - name: delete terraform artifact
         id: delete_artifact
-        env:
-          GH_TOKEN: ${{ env.GH_TOKEN }}
         run: |
           gh api repos/${{ inputs.repo }}/actions/artifacts/${{ steps.get_plan_deployment.outputs.artifact-id }} -X DELETE
+        continue-on-error: false
+
+      - name: install sops
+        id: install-sops
+        run: |
+          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
+          sudo dpkg -i sops_3.8.0_amd64.deb
+        continue-on-error: false
+
+      - name: decrypt plan
+        working-directory: ${{ steps.download-artifact.outputs.download-path }}
+        run: |
+          ls -R
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.zip
+          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          ls -R
         continue-on-error: false
 
 #      - name: Fetch PR reviews
@@ -236,34 +261,7 @@ jobs:
           repository: ${{ inputs.repo }}
 
 
-      - name: Add PR comment if Download Terraform artifacts fails
-        if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
-          comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-          gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
-          exit 1
-        continue-on-error: false
 
-      - name: install sops
-        id: install-sops
-        run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
-          rm sops_3.8.0_amd64.deb
-        continue-on-error: false
-
-      - name: decrypt plan
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          ls -R
-          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.zip
-          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}
-          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}
-          ls -R
-        continue-on-error: false
 
       - name: terraform apply
 #        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
