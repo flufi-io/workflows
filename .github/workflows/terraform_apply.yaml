@@ -247,9 +247,6 @@ jobs:
           exit 1
         continue-on-error: false
 
-
-
-
       - name: install sops
         id: install-sops
         run: |
@@ -261,9 +258,11 @@ jobs:
       - name: decrypt plan
         working-directory: ${{ inputs.working-directory }}
         run: |
-          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          ls -R
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.zip
           tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}
           rm ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          ls -R
         continue-on-error: false
 
       - name: terraform apply
@@ -271,7 +270,7 @@ jobs:
         id: terraform_apply
         run: |
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
-          ls -R
+
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
