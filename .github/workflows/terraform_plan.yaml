@@ -190,7 +190,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: |
-          tar czf ${{ steps.setup.outputs.artifact }}.tar.gz .terraform tfplan .terraform.lock.hcl
+          tar czf ${{ steps.setup.outputs.artifact }}.tar.gz tfplan .terraform.lock.hcl
           sops -e -i ${{ steps.setup.outputs.artifact }}.tar.gz
         continue-on-error: false
 
