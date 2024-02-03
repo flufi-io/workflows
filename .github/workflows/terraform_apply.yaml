@@ -145,7 +145,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           run-id: ${{ steps.get_plan_deployment.outputs.run-id }}
-          name: ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          name: ${{ steps.get_plan_deployment.outputs.artifact-name }}.zip
           path: ${{ inputs.working-directory }}
 
       - name: delete terraform artifact
