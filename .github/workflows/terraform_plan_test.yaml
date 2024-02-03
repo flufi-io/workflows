@@ -31,7 +31,6 @@ jobs:
       pr_number: ${{ needs.terraform_command_validation.outputs.pr_number }}
       commit_sha: ${{ needs.terraform_command_validation.outputs.commit_sha }}
       repo: ${{ needs.terraform_command_validation.outputs.repo }}
-      terraform_version: 1.4.5 # Optional: You can omit this line to use the latest version.
       env_vars: |
         TF_VAR_aws_region=sarasa
         TF_VAR_oidc_role=sarasa
