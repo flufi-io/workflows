@@ -17,6 +17,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     with:
       comment_body: ${{ github.event.comment.body }}
+      github_event: ${{ github.event }}
 
   terraform_apply:
     needs: [terraform_command_validation]
