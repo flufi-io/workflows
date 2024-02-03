@@ -176,9 +176,9 @@ jobs:
         working-directory: ${{ steps.download-artifact.outputs.download-path }}
         run: |
           ls -R
-          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.zip
-          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}
-          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
           ls -R
         continue-on-error: false
 
@@ -259,8 +259,6 @@ jobs:
         with:
           ref:  refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
-
-
 
 
       - name: terraform apply
