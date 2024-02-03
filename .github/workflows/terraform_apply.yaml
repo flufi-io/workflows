@@ -165,22 +165,7 @@ jobs:
           gh api repos/${{ inputs.repo }}/actions/artifacts/${{ steps.get_plan_deployment.outputs.artifact-id }} -X DELETE
         continue-on-error: false
 
-      - name: install sops
-        id: install-sops
-        run: |
-          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
-          sudo dpkg -i sops_3.8.0_amd64.deb
-        continue-on-error: false
 
-      - name: decrypt plan
-        working-directory: ${{ steps.download-artifact.outputs.download-path }}
-        run: |
-          ls -R
-          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
-          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
-          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
-          ls -R
-        continue-on-error: false
 
 #      - name: Fetch PR reviews
 #        id: fetch_pr_reviews
@@ -255,18 +240,34 @@ jobs:
           terraform_wrapper: false
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:  refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
+          path: ${{ inputs.working-directory }}
 
+      - name: install sops
+        id: install-sops
+        run: |
+          wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
+          sudo dpkg -i sops_3.8.0_amd64.deb
+        continue-on-error: false
+
+      - name: decrypt plan
+        working-directory: ${{ steps.download-artifact.outputs.download-path }}
+        run: |
+          ls -R
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          ls -R
+        continue-on-error: false
 
       - name: terraform apply
 #        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
-
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
