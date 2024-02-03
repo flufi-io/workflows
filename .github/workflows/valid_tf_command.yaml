@@ -15,7 +15,6 @@ on:
       github_event:
         description: 'The event that triggered the workflow'
         required: false
-        type: string
     secrets:
       GH_TOKEN:
         required: false
