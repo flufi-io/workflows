@@ -50,7 +50,7 @@ on:
 
 permissions: write-all
 env:
-  GH_TOKEN: ${{ secrets.github_token }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   terraform_apply:
@@ -146,11 +146,13 @@ jobs:
         with:
           run-id: ${{ steps.get_plan_deployment.outputs.run-id }}
           name: ${{ steps.get_plan_deployment.outputs.artifact-name }}
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ env.GH_TOKEN }}
           path: ${{ inputs.working-directory }}
 
       - name: delete terraform artifact
         id: delete_artifact
+        env:
+          GH_TOKEN: ${{ env.GH_TOKEN }}
         run: |
           gh api repos/${{ inputs.repo }}/actions/artifacts/${{ steps.get_plan_deployment.outputs.artifact-id }} -X DELETE
         continue-on-error: false
@@ -257,21 +259,17 @@ jobs:
         continue-on-error: false
 
       - name: decrypt plan
+        working-directory: ${{ inputs.working-directory }}
         run: |
-          sops -d -i ${{ steps.setup.outputs.artifact_name }}
-        continue-on-error: false
-
-      - name: extract plan
-        run: |
-          tar xzf ${{ steps.setup.outputs.artifact_name }}
-          rm ${{ steps.setup.outputs.artifact_name }}
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}
         continue-on-error: false
 
       - name: terraform apply
-        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
+#        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
-          terraform init -reconfigure -upgrade
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
           ls -R
         continue-on-error: false
