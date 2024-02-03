@@ -239,12 +239,12 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
-          repository: ${{ inputs.repo }}
-          path: ${{ inputs.working-directory }}
+#      - name: checkout
+#        uses: actions/checkout@v4
+#        with:
+#          ref:  refs/pull/${{ inputs.pr_number }}/head
+#          repository: ${{ inputs.repo }}
+#          path: ${{ inputs.working-directory }}
 
       - name: install sops
         id: install-sops
