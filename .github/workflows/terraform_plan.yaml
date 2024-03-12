@@ -59,22 +59,22 @@ jobs:
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
-      #      - name: Add link to workflow run in PR comment
-      #        id: add_link_to_pr_comment
-      #        env:
-      #          GITHUB_TOKEN: ${{ secrets.github_token }}
-      #          RUN_ID: ${{ github.run_id }}
-      #        run: |
-      #          pr_number="${{ inputs.pr_number }}"
-      #          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-      #          job_name="${{ github.job }}"
-      #          comment="You can check the current run of the $job_name [here]($link)"
-      #          curl --request POST \
-      #            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-      #            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-      #            --header 'content-type: application/json' \
-      #            --data "{\"body\": \"${comment}\"}"
-      #            - name: Configure 1Password Service Account
+      -
+      - name: Add link to workflow run in PR comment
+        id: add_link_to_pr_comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          pr_number="${{ inputs.pr_number }}"
+          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          job_name="${{ github.job }}"
+          comment="You can check the current run of the $job_name [here]($link)"
+          curl --request POST \
+            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
+            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            --header 'content-type: application/json' \
+            --data "{\"body\": \"${comment}\"}"
 
       - name: configure aws credentials
         id: configure-aws-credentials
@@ -89,7 +89,6 @@ jobs:
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
 
-
       - name: setup
         id: setup
         run: |
@@ -101,7 +100,7 @@ jobs:
           done
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         id: setup-terraform
         with:
           terraform_version: ${{ inputs.terraform_version }}
@@ -126,7 +125,7 @@ jobs:
         run: |
           terraform init -input=false \
             -no-color \
-            -backend-config=.config/config.${{ inputs.environment }}.tfbackend \
+            -backend-config=config.${{ inputs.environment }}.tfbackend \
             -reconfigure -upgrade
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false

@@ -1,26 +1,110 @@
 ---
 repos:
-#  - repo: https://github.com/adrienverge/yamllint.git
-#    rev: v1.32.0
-#    hooks:
-#      - id: yamllint
-#        args:
-#          - -c=.config/yamllint.yaml
-#          - --strict
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.1  # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+      - id: terraform_fmt
+        name: Terraform fmt
+        description: Rewrites all Terraform configuration files to a canonical format.
+        entry: hooks/terraform_fmt.sh
+        language: script
+        files: (\.tf|\.tfvars)$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$
+
+      - id: terraform_validate
+        name: Terraform validate
+        description: Validates all Terraform configuration files.
+        require_serial: true
+        entry: hooks/terraform_validate.sh
+        language: script
+        files: (\.tf|\.tfvars)$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$
+        args:
+          - --tf-init-args=-upgrade
+          - --tf-init-args=-reconfigure
+          - --hook-config=--retry-once-with-cleanup=true
+
+      - id: terraform_providers_lock
+        name: Lock terraform provider versions
+        description: Updates provider signatures in dependency lock files.
+        require_serial: true
+        entry: hooks/terraform_providers_lock.sh
+        language: script
+        files: (\.terraform\.lock\.hcl)$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$
+
+      - id: terraform_tflint
+        name: Terraform validate with tflint
+        description: Validates all Terraform configuration files with TFLint.
+        require_serial: true
+        entry: hooks/terraform_tflint.sh
+        language: script
+        files: (\.tf|\.tfvars)$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$
+        args:
+          - --args=--config __GIT_WORKING_DIR__/.config/.tflint.hcl
+
+      - id: terraform_tfsec
+        name: Terraform validate with tfsec
+        description: Static analysis of Terraform templates to spot potential security issues.
+        require_serial: true
+        entry: hooks/terraform_tfsec.sh
+        language: script
+        args:
+          - --args=--config-file __GIT_WORKING_DIR__/.config/.tfsec.yml
+
+      - id: terraform_checkov
+        name: Checkov
+        description: Runs checkov on Terraform templates.
+        entry: hooks/terraform_checkov.sh
+        language: script
+        always_run: false
+        files: \.tf$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$|^.*.enc.*$
+        require_serial: true
+        args:
+          - --args=--config-file __GIT_WORKING_DIR__/.config/.checkov.yml
+
+      - id: terraform_docs
+        name: Terraform docs
+        description: Inserts input and output documentation into README.md (using terraform-docs).
+        require_serial: true
+        entry: hooks/terraform_docs.sh
+        language: script
+        files: (\.tf|\.terraform\.lock\.hcl)$
+        exclude: ^\.terraform/.*$|^\.external_modules/.*$
+
+      - id: tfupdate
+        name: auto update terraform providers
+        args:
+          - --args=lock
+          - --args=--platform=linux_amd64
+          - --args=--platform=linux_arm64
+          - --args=--platform=darwin_amd64
+          - --args=--platform=darwin_arm64
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args:
+          - -c=.config/.yamllint.yaml
+          - --strict
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: check-merge-conflict
       - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-json
       - id: pretty-format-json
         args:
           - '--autofix'
+      - id: end-of-file-fixer
+      - id: check-json
       - id: check-yaml
       - id: check-symlinks
       - id: check-added-large-files
-        args: ['--maxkb=3000']
+        args: [ '--maxkb=3000' ]
       - id: detect-aws-credentials
         args:
           - '--allow-missing-credentials'

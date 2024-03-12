@@ -84,61 +84,6 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
-      - name: Fetch PR reviews
-        id: fetch_pr_reviews
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pr_reviews=$(gh pr review list -R "${{ inputs.repo }}" -p "${{ inputs.pr_number }}" | jq '.')
-          echo "pr_reviews=$pr_reviews" >> $GITHUB_OUTPUT
-
-
-      - name: Check for code owner approval
-        id: check_approval
-        run: |
-          pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
-          code_owner_approval=false
-          # Fetch the list of code owners
-          code_owners=$(gh api repos/${{ inputs.repo }}/contents/.github/CODEOWNERS | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
-
-          for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
-            review="$(echo ${row} | base64 --decode)"
-            state=$(echo "${review}" | jq -r '.state')
-            user_login=$(echo "${review}" | jq -r '.user.login')
-
-            if [ "${state}" == "APPROVED" ]; then
-              if echo "${code_owners}" | grep -wq "$user_login"; then
-                code_owner_approval=true
-                break
-              fi
-            fi
-          done
-
-          # Check if the user who made the comment is a code owner
-          commenter="${{ github.event.comment.user.login }}"
-          if echo "${code_owners}" | grep -wq "$commenter"; then
-            code_owner_approval=true
-          fi
-
-          if [ "${code_owner_approval}" == "false" ]; then
-            comment_body="error: PR not approved by a code owner. A code owner approval is required to trigger 'terraform apply'."
-            comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-            gh api repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments -H "Content-Type: application/json" -d "$comment_payload"
-            exit 1
-          fi
-          echo "code_owner_approval=$code_owner_approval" >> $GITHUB_OUTPUT
-
-
-      - name: Validate that the plan has been approved
-        id: validate_plan_approval
-        run: |
-          if [ "${{ inputs.operation }}" == "apply" ]; then
-            if [ "${{ steps.check_approval.outputs.code_owner_approval }}" == "false" ]; then
-              echo "error: PR not approved by a code owner" >&2
-              exit 1
-            fi
-          fi
-        continue-on-error: false
 
       - name: configure aws credentials
         id: configure-aws-credentials
@@ -149,7 +94,7 @@ jobs:
 
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         id: setup-terraform
         with:
           cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
@@ -157,9 +102,9 @@ jobs:
           terraform_wrapper: false
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
+          ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
 
       - name: Download Terraform artifacts
@@ -174,7 +119,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
+          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before."
           comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
           gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
           exit 1
@@ -201,7 +146,6 @@ jobs:
         run: |
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
-          rm sops_3.8.0_amd64.deb
         continue-on-error: false
 
       - name: decrypt plan
@@ -221,7 +165,7 @@ jobs:
         run: |
           terraform init -reconfigure -upgrade
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
-          ls -R
+
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 

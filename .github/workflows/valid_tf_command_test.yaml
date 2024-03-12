@@ -9,9 +9,7 @@ on:
   issue_comment:
     types: [ created ]
 
-
 permissions: write-all
-
 
 jobs:
   terraform_command_validation:
@@ -24,7 +22,17 @@ jobs:
     needs: [terraform_command_validation]
     runs-on: ubuntu-latest
     steps:
-      - name: Print environment and operation
+      - name: Compare environment and operation are the same as the ones extracted from the comment
+        # checkov:skip=CKV_GHA_2:Ensure run commands are not vulnerable to shell injection
+        env:
+          EXPECTED_COMMAND: >-
+            - /terraform ${{needs.terraform_command_validation.outputs.operation}}
+            - ${{needs.terraform_command_validation.outputs.environment}}
         run: |
-          [[ "${{ github.event.comment.body }}" == "/terraform ${{needs.terraform_command_validation.outputs.operation}} ${{needs.terraform_command_validation.outputs.environment}}" ]]
-        if: ${{ success() }}
+          ACTUAL_COMMAND=$(echo "${{ github.event.comment.body }}" | sed 's/[^a-zA-Z0-9 ]//g')
+          if [ "$ACTUAL_COMMAND" = "$EXPECTED_COMMAND" ]; then
+            echo "The command matches the expected pattern."
+          else
+            echo "The command does not match the expected pattern."
+            exit 1
+          fi

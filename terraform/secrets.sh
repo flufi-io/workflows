@@ -1,79 +1,75 @@
 #!/bin/bash
+# This script is used to encrypt and decrypt secrets for different environments and regions.
+# It uses sops for encryption and decryption.
 
-# Define environments
+# Define environments and regions
+# An array of environments and regions for which the secrets need to be managed.
 environments=("sandbox" "development" "staging" "production")
+regions=("us-east-1" "us-west-2")
 
 # Check for arguments
+# The script expects one to three arguments.
+# The first argument is the operation (-e for encryption, -d for decryption).
+# The second argument is optional and specifies the environment. If not provided, the operation is performed for all environments.
+# The third argument is optional and specifies the region. If not provided, the default region is 'us-east-1'.
 if [ "$#" -eq 1 ]; then
     operation=$1
     selected_environments=("${environments[@]}")
+    region="us-east-1"
 elif [ "$#" -eq 2 ]; then
     operation=$1
     selected_environments=("$2")
+    region="us-east-1"
+elif [ "$#" -eq 3 ]; then
+    operation=$1
+    selected_environments=("$2")
+    region=$3
 else
-    echo "Usage: $0 [-e|-d] [optional: sandbox|development|staging|production]"
+    echo "Usage: $0 [-e|-d] [optional: ${regions[*]}] [optional: ${regions[*]}]"
     exit 1
 fi
 
 # Function to perform sops operation
+# This function performs the sops operation (encryption or decryption) for a given environment and region.
 perform_sops_operation() {
     local environment=$1
-    local file_type=$2
-    local file_suffix=".tfvars.json"
-    local encrypted_suffix=".tfvars.enc.json"
-
-    if [ "$file_type" == "fixtures" ]; then
-        decrypted_file="${file_type}.${environment}${file_suffix}"
-    else
-        decrypted_file="${file_type}.${environment}.auto${file_suffix}"
-    fi
-
-    encrypted_file="${decrypted_file/.tfvars.json/$encrypted_suffix}"
-
-    # Adjusted check for secrets file existence
-    if [ "$file_type" == "secrets" ]; then
-        if [ "$operation" == "-e" ] && [ ! -f "$decrypted_file" ]; then
-            echo "Decrypted secrets file ($decrypted_file) not found for encryption. Skipping."
-            return
-        elif [ "$operation" == "-d" ] && [ ! -f "$encrypted_file" ]; then
-            echo "Encrypted secrets file ($encrypted_file) not found for decryption. Skipping."
-            return
-        fi
-    elif [ "$file_type" == "fixtures" ] && [ ! -f "$decrypted_file" ] && [ "$operation" == "-e" ]; then
-        echo "No suitable fixtures file found for encryption in $environment. Skipping."
-        return
-    fi
+    local region=$2
+    decrypted_file="secrets.${environment}.${region}.auto.tfvars.json"
+    encrypted_file="secrets.${environment}.${region}.auto.tfvars.enc.json"
 
     # Perform sops operation and check if successful
+    # If the operation is encryption, the script checks if the encrypted file already exists.
+    # If it does, the script exits. If it doesn't, the script attempts to encrypt the decrypted file.
+    # If the operation is decryption, the script checks if the decrypted file already exists.
+    # If it does, the script exits. If it doesn't, the script attempts to decrypt the encrypted file.
     if [ "$operation" == "-e" ]; then
         if [ -f "$encrypted_file" ]; then
-            echo "Encrypted file ($encrypted_file) already exists. Skipping encryption."
-            return
+            echo "Encrypted file already exists. Skipping encryption."
+            exit 0
         fi
-        if sops -e "$decrypted_file" > "$encrypted_file"; then
-            echo "Encryption of $decrypted_file successful."
+        if sops -e "$decrypted_file"  > "$encrypted_file"; then
+            echo "Encryption successful."
             rm -f "$decrypted_file"
             git add "$encrypted_file"
-            echo "Original file ($decrypted_file) deleted."
+            echo "Original file deleted."
         else
-            echo "Encryption of $decrypted_file failed."
+            echo "Encryption failed."
             rm -f "$encrypted_file"
-            return 1
+            exit 1
         fi
     elif [ "$operation" == "-d" ]; then
         if [ -f "$decrypted_file" ]; then
-            echo "Decrypted file ($decrypted_file) already exists. Skipping decryption."
-            return
+            echo "Decrypted file already exists. Skipping decryption."
+            exit 0
         fi
         if sops --ignore-mac -d "$encrypted_file" > "$decrypted_file"; then
-            echo "Decryption of $encrypted_file successful."
+            echo "Decryption successful."
             rm -f "$encrypted_file"
-            git rm --cached *.enc.json
-            echo "Encrypted file ($encrypted_file) deleted."
+            echo "Encrypted file deleted."
         else
-            echo "Decryption of $encrypted_file failed."
+            echo "Decryption failed."
             rm -f "$decrypted_file"
-            return 1
+            exit 1
         fi
     else
         echo "Invalid operation: $operation"
@@ -81,8 +77,8 @@ perform_sops_operation() {
     fi
 }
 
-# Loop over selected environments and file types
+# Loop over selected environments
+# The script performs the sops operation for each selected environment.
 for env in "${selected_environments[@]}"; do
-    perform_sops_operation "$env" "fixtures" # Fixtures files pattern corrected
-    perform_sops_operation "$env" "secrets"  # Only attempt if secrets file exists
+    perform_sops_operation "$env" "$region"
 done

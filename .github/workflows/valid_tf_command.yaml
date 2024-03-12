@@ -119,7 +119,8 @@ jobs:
           num_words=$(echo "$comment" | wc -w)
           operation=$(echo "$comment" | awk '{print $1 " " $2}')
           environment=$(echo "$comment" | awk '{print $3}')
-          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
+          if [ $num_words -eq 3 ] && ([ "$operation" == "terraform plan" ] || [ "$operation" == "terraform apply" ]) \
+            && (echo "${{ inputs.valid_environments }}" | grep -wq "$environment"); then
             echo "valid=true" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT

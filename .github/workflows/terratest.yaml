@@ -42,8 +42,6 @@ jobs:
 
       - name: setup tofu
         run: |
-          tofuenv use latest
-          tofu=$(which tofu)
           tfenv use latest
 
       - name: run terratest
