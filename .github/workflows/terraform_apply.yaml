@@ -50,12 +50,13 @@ on:
 
 permissions: write-all
 env:
-  GH_TOKEN: ${{ secrets.github_token }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   terraform_apply:
     if: ${{ inputs.operation == 'apply' }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
@@ -71,7 +72,6 @@ jobs:
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ inputs.pr_number }}"
@@ -84,61 +84,144 @@ jobs:
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
-      - name: Fetch PR reviews
-        id: fetch_pr_reviews
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Terraform Apply deployment
+        id: create-deployment
+        shell: bash
         run: |
-          pr_reviews=$(gh pr review list -R "${{ inputs.repo }}" -p "${{ inputs.pr_number }}" | jq '.')
-          echo "pr_reviews=$pr_reviews" >> $GITHUB_OUTPUT
+          response=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments \
+            -F "environment=${{ inputs.environment }}" \
+            -F "task=terraform:apply" \
+            -F "auto_merge=false" \
+            -F "ref=${{ github.sha }}" \
+            -F "description=Terraform Apply in proggress for ${{ inputs.environment }}")
+          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
 
-
-      - name: Check for code owner approval
-        id: check_approval
+      - name: Set Deployment Status In progress
+        id: set-deployment-status-in-progress
+        shell: bash
         run: |
-          pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
-          code_owner_approval=false
-          # Fetch the list of code owners
-          code_owners=$(gh api repos/${{ inputs.repo }}/contents/.github/CODEOWNERS | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
+            -F "state=in_progress" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Apply in proggress for  ${{ inputs.environment }}"
 
-          for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
-            review="$(echo ${row} | base64 --decode)"
-            state=$(echo "${review}" | jq -r '.state')
-            user_login=$(echo "${review}" | jq -r '.user.login')
-
-            if [ "${state}" == "APPROVED" ]; then
-              if echo "${code_owners}" | grep -wq "$user_login"; then
-                code_owner_approval=true
-                break
-              fi
-            fi
-          done
-
-          # Check if the user who made the comment is a code owner
-          commenter="${{ github.event.comment.user.login }}"
-          if echo "${code_owners}" | grep -wq "$commenter"; then
-            code_owner_approval=true
-          fi
-
-          if [ "${code_owner_approval}" == "false" ]; then
-            comment_body="error: PR not approved by a code owner. A code owner approval is required to trigger 'terraform apply'."
-            comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-            gh api repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments -H "Content-Type: application/json" -d "$comment_payload"
-            exit 1
-          fi
-          echo "code_owner_approval=$code_owner_approval" >> $GITHUB_OUTPUT
-
-
-      - name: Validate that the plan has been approved
-        id: validate_plan_approval
+      - name: List Deployments
+        id: list_deployments
+        shell: bash
         run: |
-          if [ "${{ inputs.operation }}" == "apply" ]; then
-            if [ "${{ steps.check_approval.outputs.code_owner_approval }}" == "false" ]; then
-              echo "error: PR not approved by a code owner" >&2
-              exit 1
-            fi
-          fi
+          response=$(gh api \
+            --method GET \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/deployments \
+            -F ref=${{ github.sha }} \
+            -F task=terraform:plan \
+            -F environment=${{ inputs.environment }})
+          echo "deployment_id=$(echo $response | jq -r '.[0].id')" >> $GITHUB_OUTPUT
+
+      - name: Get Plan Deployment
+        id: get_plan_deployment
+        shell: bash
+        run: |
+          response=$(gh api \
+            --method GET \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/deployments/${{ steps.list_deployments.outputs.deployment_id }})
+          echo "run-id=$(echo $response | jq -r '.payload | fromjson | ."run-id"')" >> $GITHUB_OUTPUT
+          echo "artifact-name=$(echo $response | jq -r '.payload | fromjson | ."artifact-name"')" >> $GITHUB_OUTPUT
+          echo "artifact-id=$(echo $response | jq -r '.payload | fromjson | ."artifact-id"')" >> $GITHUB_OUTPUT
+
+      - name: Download Terraform artifacts
+        uses: actions/download-artifact@v4
+        id: download-artifact
+        with:
+          run-id: ${{ steps.get_plan_deployment.outputs.run-id }}
+          name: ${{ steps.get_plan_deployment.outputs.artifact-name }}
+          github-token: ${{ env.GH_TOKEN }}
+          path: ${{ inputs.working-directory }}
+
+      - name: Add PR comment if Download Terraform artifacts fails
+        if: ${{ steps.download-artifact.outcome == 'failure' }}
+        run: |
+          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
+          comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+          gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
+          exit 1
         continue-on-error: false
+
+      - name: delete terraform artifact
+        id: delete_artifact
+        run: |
+          gh api repos/${{ inputs.repo }}/actions/artifacts/${{ steps.get_plan_deployment.outputs.artifact-id }} -X DELETE
+        continue-on-error: false
+
+
+
+#      - name: Fetch PR reviews
+#        id: fetch_pr_reviews
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          pr_reviews=$(gh pr review list -R "${{ inputs.repo }}" -p "${{ inputs.pr_number }}" | jq '.')
+#          echo "pr_reviews=$pr_reviews" >> $GITHUB_OUTPUT
+#
+#
+#      - name: Check for code owner approval
+#        id: check_approval
+#        run: |
+#          pr_reviews="${{ steps.fetch_pr_reviews.outputs.pr_reviews }}"
+#          code_owner_approval=false
+#          # Fetch the list of code owners
+#          code_owners=$(gh api repos/${{ inputs.repo }}/contents/.github/CODEOWNERS | jq -r '.content' | base64 --decode | grep -Eo '@\w+' | tr -d '@')
+#
+#          for row in $(echo "${pr_reviews}" | jq -r '.[] | @base64'); do
+#            review="$(echo ${row} | base64 --decode)"
+#            state=$(echo "${review}" | jq -r '.state')
+#            user_login=$(echo "${review}" | jq -r '.user.login')
+#
+#            if [ "${state}" == "APPROVED" ]; then
+#              if echo "${code_owners}" | grep -wq "$user_login"; then
+#                code_owner_approval=true
+#                break
+#              fi
+#            fi
+#          done
+#
+#          # Check if the user who made the comment is a code owner
+#          commenter="${{ github.event.comment.user.login }}"
+#          if echo "${code_owners}" | grep -wq "$commenter"; then
+#            code_owner_approval=true
+#          fi
+#
+#          if [ "${code_owner_approval}" == "false" ]; then
+#            comment_body="error: PR not approved by a code owner. A code owner approval is required to trigger 'terraform apply'."
+#            comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+#            gh api repos/${{ inputs.repo }}/issues/${{ inputs.pr_number }}/comments -H "Content-Type: application/json" -d "$comment_payload"
+#            exit 1
+#          fi
+#          echo "code_owner_approval=$code_owner_approval" >> $GITHUB_OUTPUT
+#
+#
+#      - name: Validate that the plan has been approved
+#        id: validate_plan_approval
+#        run: |
+#          if [ "${{ inputs.operation }}" == "apply" ]; then
+#            if [ "${{ steps.check_approval.outputs.code_owner_approval }}" == "false" ]; then
+#              echo "error: PR not approved by a code owner" >&2
+#              exit 1
+#            fi
+#          fi
+#        continue-on-error: false
 
       - name: configure aws credentials
         id: configure-aws-credentials
@@ -156,72 +239,35 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          ref:  refs/pull/${{ inputs.pr_number }}/head
-          repository: ${{ inputs.repo }}
-
-      - name: Download Terraform artifacts
-        id: download-artifact
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          search_artifacts: true
-          name: ${{ steps.setup.outputs.artifact_name }}
-
-      - name: Add PR comment if Download Terraform artifacts fails
-        if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before running **terraform apply**."
-          comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
-          gh issue comment "${{ inputs.pr_number }}" -r "${{ inputs.repo }}" -b "${comment_body}"
-          exit 1
-        continue-on-error: false
-
-      - name: Get and Delete Artifacts
-        id: get-and-delete-artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          artifact_name="${{ steps.setup.outputs.artifact_name }}"
-          artifact_data=$(gh api repos/${{ inputs.repo }}/actions/artifacts)
-          artifact_ids=$(echo "$artifact_data" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .id")
-
-          for artifact_id in $artifact_ids; do
-            echo "Deleting artifact with ID: $artifact_id"
-            gh api repos/${{ inputs.repo }}/actions/artifacts/$artifact_id -X DELETE
-          done
-        continue-on-error: false
-
+#      - name: checkout
+#        uses: actions/checkout@v4
+#        with:
+#          ref:  refs/pull/${{ inputs.pr_number }}/head
+#          repository: ${{ inputs.repo }}
+#          path: ${{ inputs.working-directory }}
 
       - name: install sops
         id: install-sops
         run: |
           wget https://github.com/mozilla/sops/releases/download/v3.8.0/sops_3.8.0_amd64.deb
           sudo dpkg -i sops_3.8.0_amd64.deb
-          rm sops_3.8.0_amd64.deb
         continue-on-error: false
 
       - name: decrypt plan
+        working-directory: ${{ steps.download-artifact.outputs.download-path }}
         run: |
-          sops -d -i ${{ steps.setup.outputs.artifact_name }}
-        continue-on-error: false
-
-      - name: extract plan
-        run: |
-          tar xzf ${{ steps.setup.outputs.artifact_name }}
-          rm ${{ steps.setup.outputs.artifact_name }}
+          ls -R
+          sops -d -i  ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          tar xzf ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          rm ${{ steps.get_plan_deployment.outputs.artifact-name }}.tar.gz
+          ls -R
         continue-on-error: false
 
       - name: terraform apply
-        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
+#        if: ${{ steps.check_approval.outputs.code_owner_approval == 'true' }}
         id: terraform_apply
         run: |
-          terraform init -reconfigure -upgrade
           terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
-          ls -R
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
@@ -247,3 +293,17 @@ jobs:
             comment_payload=$(jq -n --arg body "$chunk" '{"body": $body}')
             gh issue comment "${{ inputs.pr_number }}" -R "${{ inputs.repo }}" -b "$chunk"
           done
+
+      - name: Set Deployment Status in Success
+        id: set-deployment-status-in-success
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
+            -F "state=success" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Applied successfully in ${{ inputs.environment }}"

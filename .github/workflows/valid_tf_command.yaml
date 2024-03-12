@@ -12,6 +12,9 @@ on:
         description: 'The body of the comment that triggered the workflow'
         required: true
         type: string
+      github_event:
+        description: 'The event that triggered the workflow'
+        required: false
     secrets:
       GH_TOKEN:
         required: false

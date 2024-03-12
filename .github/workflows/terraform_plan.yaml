@@ -100,6 +100,8 @@ jobs:
             echo "$line" >> $GITHUB_ENV
           done
 
+
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         id: setup-terraform
@@ -188,7 +190,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: |
-          tar czf ${{ steps.setup.outputs.artifact }}.tar.gz .terraform tfplan
+          tar czf ${{ steps.setup.outputs.artifact }}.tar.gz .terraform tfplan .terraform.lock.hcl
           sops -e -i ${{ steps.setup.outputs.artifact }}.tar.gz
         continue-on-error: false
 
@@ -197,7 +199,42 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: ${{ inputs.working-directory }}/${{ steps.setup.outputs.artifact }}.tar.gz
-          name: ${{ steps.setup.outputs.artifact_name }}
+          name: ${{ steps.setup.outputs.artifact }}
           if-no-files-found: error
           retention-days: 1
         continue-on-error: false
+
+      - name: Create Deployment
+        id: create-deployment
+        shell: bash
+        run: |
+          response=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments \
+            -F "environment=${{ inputs.environment }}" \
+            -F "task=terraform:plan" \
+            -F "auto_merge=false" \
+            -F "ref=${{ github.sha }}" \
+            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}" \
+            -F "payload=$(echo "{\"environment\": \"${{ inputs.environment }}\",
+              \"artifact-id\": \"${{ steps.upload-artifact.outputs.artifact-id }}\",
+              \"artifact-name\": \"${{ steps.setup.outputs.artifact }}\",
+              \"run-id\": \"${{ github.run_id }}\"}" | jq -c .)")
+          echo "deployment_id=$(echo $response | jq -r '.id')" >> $GITHUB_OUTPUT
+
+
+      - name: Set Deployment Status pending to be applied
+        id: set-deployment-status-pending
+        shell: bash
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ inputs.repo }}/deployments/${{ steps.create-deployment.outputs.deployment_id }}/statuses \
+            -F "state=success" \
+            -F "environment=${{ inputs.environment }}" \
+            -F "auto_inactive=true" \
+            -F "description=Terraform Plan finished successfully for ${{ inputs.environment }}"
