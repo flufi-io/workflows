@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.88.1  # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    rev: v1.90.0  # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
     hooks:
       - id: terraform_fmt
         name: Terraform fmt
@@ -22,6 +22,7 @@ repos:
         args:
           - --tf-init-args=-upgrade
           - --tf-init-args=-reconfigure
+          - --tf-init-args=-lock=false
           - --hook-config=--retry-once-with-cleanup=true
 
       - id: terraform_providers_lock
@@ -44,27 +45,6 @@ repos:
         args:
           - --args=--config __GIT_WORKING_DIR__/.config/.tflint.hcl
 
-      - id: terraform_tfsec
-        name: Terraform validate with tfsec
-        description: Static analysis of Terraform templates to spot potential security issues.
-        require_serial: true
-        entry: hooks/terraform_tfsec.sh
-        language: script
-        args:
-          - --args=--config-file __GIT_WORKING_DIR__/.config/.tfsec.yml
-
-      - id: terraform_checkov
-        name: Checkov
-        description: Runs checkov on Terraform templates.
-        entry: hooks/terraform_checkov.sh
-        language: script
-        always_run: false
-        files: \.tf$
-        exclude: ^\.terraform/.*$|^\.external_modules/.*$|^.*.enc.*$
-        require_serial: true
-        args:
-          - --args=--config-file __GIT_WORKING_DIR__/.config/.checkov.yml
-
       - id: terraform_docs
         name: Terraform docs
         description: Inserts input and output documentation into README.md (using terraform-docs).
@@ -73,6 +53,7 @@ repos:
         language: script
         files: (\.tf|\.terraform\.lock\.hcl)$
         exclude: ^\.terraform/.*$|^\.external_modules/.*$
+
 
       - id: tfupdate
         name: auto update terraform providers
@@ -83,6 +64,14 @@ repos:
           - --args=--platform=darwin_amd64
           - --args=--platform=darwin_arm64
 
+  - repo: https://github.com/bridgecrewio/checkov.git
+    rev: '3.2.107'
+    hooks:
+      - id: checkov
+        files: \.y(a)?ml$
+        args:
+          - -d=.
+          - --config-file=.config/.checkov.yaml
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
@@ -92,7 +81,7 @@ repos:
           - --strict
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-merge-conflict
       - id: trailing-whitespace
@@ -112,3 +101,4 @@ repos:
       - id: no-commit-to-branch
       - id: forbid-submodules
       - id: check-vcs-permalinks
+      - id: debug-statements
