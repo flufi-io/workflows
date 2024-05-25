@@ -20,7 +20,7 @@ jobs:
     # if: ${{ !contains(github.actor, 'bot') && contains(github.event.comment.body, '/terraform') }}
     # this ia a test workflow, so we want to run it on every PR event if the comment contains /terraform
     # triggered by terraform_plan_test_trigger.yaml
-    if: ${{ contains(github.event.comment.body, '/terraform') }}
+    if: ${{ startsWith(github.event.comment.body, '/terraform') }}
     uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
