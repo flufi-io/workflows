@@ -7,10 +7,6 @@
 name: Post valid Terraform commands on new PR
 on:
   workflow_call:
-    secrets:
-      GH_TOKEN:
-        required: true
-    
     outputs:
       environments:
         description: "A comma-separated list of available environments"
