@@ -46,7 +46,7 @@ Please refer to the [wiki](https://github.com/flufi-io/workflows/wiki) page for 
 
 MIT License
 
-Copyright (c) [2023] Flufi LLC
+Copyright (c) [2024] Flufi LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
