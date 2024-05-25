@@ -25,6 +25,7 @@ runs:
       shell: bash
       run: |
         set -e
+        brew update
         brew install jq
         brew install terraform-docs
         brew install pre-commit
