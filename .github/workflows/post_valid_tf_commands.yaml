@@ -10,11 +10,15 @@ on:
     secrets:
       GH_TOKEN:
         required: true
-
+    
     outputs:
       environments:
         description: "A comma-separated list of available environments"
         value: ${{ jobs.post_valid_commands.outputs.environments }}
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   post_valid_commands:
@@ -23,28 +27,22 @@ jobs:
       - name: Fetch environments
         id: fetch-environments
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
             | jq -r '.environments[].name' | paste -sd "," -)
           echo "environments=$env_list" >> $GITHUB_ENV
           echo "environments=$env_list" >> $GITHUB_OUTPUT
-
-      - name: Post comment with valid commands
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      
+      - name: Post comment
         run: |
-          pr_number="${{ github.event.number }}"
-          valid_commands="Valid commands for this repository are:\n\n"
-          for environment in $(echo "${{ steps.fetch-environments.outputs.environments }}" | tr ',' ' '); do
-            valid_commands+="\`/terraform plan ${environment}\`\n"
-            valid_commands+="\`/terraform apply ${environment}\`\n"
-          done
-
-          comment_data='{"body": "'"${valid_commands//\"/\\\"}"'"}'
+          pr_number="${{ github.event.pull_request.number }}"
+          comment_body="This is a comment posted by a GitHub Action."
+          
+          comment_data='{"body": "'"${comment_body//\"/\\\"}"'"}'
           curl --request POST \
             --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ env.GITHUB_TOKEN }}" \
+            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             --header 'content-type: application/json' \
             --data "$comment_data"
