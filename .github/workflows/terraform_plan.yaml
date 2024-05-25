@@ -48,9 +48,12 @@ on:
         type: string
         default: ''
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # This is required to use the AWS Credentials
 env:
-  GH_TOKEN: ${{ secrets.github_token }}
+  GH_TOKEN: ${{ secrets.github_token }}  # This is required to use the gh cli
 
 jobs:
   terraform_plan:
@@ -59,20 +62,16 @@ jobs:
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
-      -
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ github.run_id }}"
           job_name="${{ github.job }}"
           comment="You can check the current run of the $job_name [here]($link)"
           curl --request POST \
             --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            --header "authorization: Bearer ${{ secrets.github_token }}" \
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
@@ -108,7 +107,7 @@ jobs:
 
       - name: checkout
         id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ inputs.pr_number }}/head
           repository: ${{ inputs.repo }}
@@ -126,7 +125,7 @@ jobs:
           terraform init -input=false \
             -no-color \
             -backend-config=config.${{ inputs.environment }}.tfbackend \
-            -reconfigure -upgrade
+            -reconfigure -upgrade -lock=false
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: false
 
@@ -141,27 +140,6 @@ jobs:
           terraform show -no-color tfplan > plan_output.txt
           terraform show -json tfplan > plan.json
         continue-on-error: false
-
-      #      - name: Setup Infracost
-      #        uses: infracost/actions/setup@v2
-      #        with:
-      #          api-key: ${{ fromJson(env.SECRETS).infracost.api_key }}
-      #
-      #      - name: Generate Infracost JSON
-      #        run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
-      #        working-directory: ${{ inputs.working-directory }}
-      #        continue-on-error: true
-      #
-      #      - name: Post Infracost comment
-      #        run: |
-      #          infracost comment github --path /tmp/infracost.json \
-      #                                   --repo ${{ inputs.repo }} \
-      #                                   --github-token ${{ github.token }} \
-      #                                   --pull-request ${{ inputs.pr_number}} \
-      #                                   --behavior update \
-      #                                   --tag ${{ inputs.environment }}
-      #        continue-on-error: true
-      #        working-directory: ${{ inputs.working-directory }}
 
       - name: Post Terraform plan output as PR comment
         id: terraform-plan-comment

@@ -1,0 +1,31 @@
+---
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
+# All rights reserved.
+# Please note that Flufi LLC owns the original version of this workflow,
+# which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
+
+name: Terraform Plan Test Trigger
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform_plan_test_trigger:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: post terraform plan
+        id: post-terraform-plan
+        run: |
+          pr_number="${{ github.event.number }}"
+          comment="/terraform plan"
+          curl --request POST \
+            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
+            --header "authorization: Bearer ${{ secrets.github_token }}" \
+            --header 'content-type: application/json' \
+            --data "{\"body\": \"${comment}\"}"
