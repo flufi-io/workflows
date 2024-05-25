@@ -22,5 +22,5 @@ runs:
 
     - uses: tecolicom/actions-use-homebrew-tools@v1
       with:
-        tools: 'jq terraform-docs trivy checkov tflint tfupdate'
+        tools: 'jq pre-commit terraform-docs trivy checkov tflint tfupdate'
         cache: yes
