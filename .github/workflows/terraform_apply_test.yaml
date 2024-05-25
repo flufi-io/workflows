@@ -12,7 +12,7 @@ permissions: write-all
 
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@multiple-tfvars-apply
+    uses: .github/workflows/valid_tf_command.yaml
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     with:
@@ -21,7 +21,7 @@ jobs:
   terraform_apply:
     needs: [terraform_command_validation]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
-    uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@multiple-tfvars-apply
+    uses: .github/workflows/terraform_apply.yaml
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
