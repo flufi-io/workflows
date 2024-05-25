@@ -21,14 +21,14 @@ jobs:
     # this ia a test workflow, so we want to run it on every PR event if the comment contains /terraform
     # triggered by terraform_plan_test_trigger.yaml
     if: ${{ contains(github.event.comment.body, '/terraform') }}
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@multiple-tfvars-apply
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
     needs: [ terraform_command_validation ]
-    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@multiple-tfvars-apply
+    uses: ./.github/workflows/terraform_plan.yaml
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
@@ -41,8 +41,7 @@ jobs:
         TF_VAR_aws_region=sarasa
         TF_VAR_oidc_role=sarasa
     # secrets: inherit # This is required to use GITHUB_SECRETS as terraform secrets
-
-
+    
   download_plan:
     runs-on: ubuntu-latest
     needs: [ terraform_command_validation, terraform_plan ]
