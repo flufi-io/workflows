@@ -17,7 +17,7 @@ repos:
         require_serial: true
         entry: hooks/terraform_validate.sh
         language: script
-        files: (\.tf|\.tfvars)$
+        files: (\.tf|\.tfvars|\.terraform\.lock\.hcl)$
         exclude: ^\.terraform/.*$|^\.external_modules/.*$
         args:
           - --tf-init-args=-upgrade
