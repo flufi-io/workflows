@@ -1,0 +1,35 @@
+---
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
+# All rights reserved.
+# Please note that Flufi LLC owns the original version of this workflow,
+# which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
+
+# This action will install the dependencies required for pre-commit to run
+name: setup pre-commit dependencies
+description: 'Install pre-commit dependencies'
+author: 'Flufi LLC'
+runs:
+  using: 'composite'
+  steps:
+    - uses: hashicorp/setup-terraform@v3
+      id: setup-terraform
+      with:
+        terraform_wrapper: false
+
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - name: install pre-commit dependencies
+      id: install-pre-commit-dependencies
+      shell: bash
+      run: |
+        set -e
+        brew update
+        brew install jq
+        brew install terraform-docs
+        brew install pre-commit
+        brew install trivy
+        brew install checkov
+        brew install tflint
+        brew install tfupdate

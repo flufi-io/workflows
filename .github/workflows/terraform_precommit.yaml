@@ -25,32 +25,15 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-
-      - uses: hashicorp/setup-terraform@v3
-        id: setup-terraform
-        with:
-          terraform_wrapper: false
-
-      - name: install pre-commit dependencies
-        id: install-pre-commit-dependencies
-        run: |
-          brew install jq
-          brew install terraform-docs
-          brew install pre-commit
-          brew install trivy
-          brew install checkov
-          brew install tflint
-          brew install tfupdate
-
       - name: Check out the repository
         id: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-
+          
+      - name: setup pre-commit dependencies
+        uses: ./.github/actions/pre-commit-terraform-dependencies
+        
       - name: terraform init
         uses: ./.github/actions/pre-commit-terraform-init
         with:
