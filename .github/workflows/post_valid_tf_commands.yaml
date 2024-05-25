@@ -27,8 +27,6 @@ jobs:
       - name: Fetch environments
         id: fetch-environments
         continue-on-error: false
-        env:
-          GH_TOKEN: ${{ secrets.github_token }}
         run: |
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
@@ -38,8 +36,6 @@ jobs:
 
       - name: Post comment with valid commands
         continue-on-error: false
-        env:
-          GH_TOKEN: ${{ secrets.github_token }}
         run: |
           pr_number="${{ github.event.number }}"
           valid_commands="Valid commands for this repository are:\n\n"
@@ -48,4 +44,9 @@ jobs:
             valid_commands+="\`/terraform apply ${environment}\`\n"
           done
 
-          echo "$valid_commands" | gh pr comment "$pr_number" --repo ${{ github.repository }} --body-file=-
+          comment_data='{"body": "'"${valid_commands//\"/\\\"}"'"}'
+          curl --request POST \
+            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
+            --header "authorization: Bearer ${{ secrets.github_token }}" \
+            --header 'content-type: application/json' \
+            --data "$comment_data"
