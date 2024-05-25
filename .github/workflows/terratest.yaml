@@ -41,7 +41,7 @@ jobs:
           role-to-assume: arn:aws:iam::732758452413:role/github-oidc
           aws-region: us-east-1
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           cache-dependency-path: main/tests/complete/go.mod
           go-version: '>=1.21.0'
