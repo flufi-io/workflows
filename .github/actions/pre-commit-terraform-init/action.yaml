@@ -1,0 +1,38 @@
+---
+# This action initializes Terraform in directories up to three levels deep containing *.tf files
+name: 'Terraform Init'
+description: 'Initialize Terraform in directories up to three levels deep containing *.tf files'
+author: 'Flufi LLC'
+inputs:
+  path:
+    description: 'Path to start searching for .tf files'
+    required: false
+    default: '.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Find directories with *.tf files
+      id: find-directories
+      shell: bash
+      run: |
+        directories=$(find ${{ inputs.path }} -maxdepth 3 -type f -name '*.tf' -exec dirname {} \; | sort | uniq)
+        if [ -z "$directories" ]; then
+          echo "No directories with *.tf files found."
+          exit 0
+        fi
+        echo "directories=$directories" >> $GITHUB_ENV
+
+    - name: List directories
+      shell: bash
+      run: |
+        echo "Terraform init will be run in the following directories:"
+        echo "$directories"
+
+    - name: Run terraform init
+      shell: bash
+      run: |
+        for dir in $directories; do
+          echo "Running terraform init in $dir"
+          (cd "$dir" && terraform init -lock=false -upgrade -reconfigure)
+        done
