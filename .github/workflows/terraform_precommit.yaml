@@ -55,5 +55,6 @@ jobs:
       - name: Run pre-commit checks
         run: |
           tfenv use latest
+          terraform init -input=false -no-color
           pre-commit install --install-hooks
           pre-commit autoupdate &&  pre-commit run -a --verbose
