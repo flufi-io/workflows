@@ -25,15 +25,15 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: setup pre-commit dependencies
-        uses: ./.github/actions/pre-commit-terraform-dependencies
-
       - name: Check out the repository
         id: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-
+          
+      - name: setup pre-commit dependencies
+        uses: ./.github/actions/pre-commit-terraform-dependencies
+        
       - name: terraform init
         uses: ./.github/actions/pre-commit-terraform-init
         with:
