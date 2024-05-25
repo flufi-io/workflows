@@ -19,7 +19,7 @@ jobs:
   terraform_apply:
     needs: [terraform_command_validation]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
-    uses: .github/workflows/terraform_apply.yaml
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
