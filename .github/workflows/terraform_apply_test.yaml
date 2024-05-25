@@ -1,5 +1,5 @@
 ---
-# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
 # All rights reserved.
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
@@ -8,20 +8,22 @@ name: terraform apply test
 on:
   issue_comment:
     types: [ created ]
-permissions: write-all
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # This is required to use the AWS Credentials
 
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@multiple-tfvars-apply
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
 
   terraform_apply:
     needs: [terraform_command_validation]
     if: ${{ needs.terraform_command_validation.outputs.operation == 'apply' }}
-    uses: flufi-io/workflows/.github/workflows/terraform_apply.yaml@multiple-tfvars-apply
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}

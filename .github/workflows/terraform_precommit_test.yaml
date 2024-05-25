@@ -1,5 +1,5 @@
 ---
-# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
 # All rights reserved.
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
@@ -8,7 +8,8 @@ name: terraform pre-commit test
 on:
   pull_request:
 
-permissions: write-all
+permissions:
+  contents: read
 
 
 jobs:
@@ -16,4 +17,3 @@ jobs:
     uses: ./.github/workflows/terraform_precommit.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
-    secrets: inherit

@@ -1,5 +1,5 @@
 ---
-# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
 # All rights reserved.
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
@@ -9,20 +9,26 @@ on:
   issue_comment:
     types: [ created ]
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # This is required to use the AWS Credentials
 
 jobs:
   terraform_command_validation:
-    uses: flufi-io/workflows/.github/workflows/valid_tf_command.yaml@multiple-tfvars-apply
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # only runs if the comment is not from a bot and starts with /terraform
+    # if: ${{ !contains(github.actor, 'bot') && contains(github.event.comment.body, '/terraform') }}
+    # this ia a test workflow, so we want to run it on every PR event if the comment contains /terraform
+    # triggered by terraform_plan_test_trigger.yaml
+    if: ${{ contains(github.event.comment.body, '/terraform') }}
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
 
   terraform_plan:
     if: ${{ needs.terraform_command_validation.outputs.operation == 'plan' }}
     needs: [ terraform_command_validation ]
-    uses: flufi-io/workflows/.github/workflows/terraform_plan.yaml@multiple-tfvars-apply
+    uses: ./.github/workflows/terraform_plan.yaml
     with:
       environment: ${{ needs.terraform_command_validation.outputs.environment }}
       operation: ${{ needs.terraform_command_validation.outputs.operation }}
@@ -34,14 +40,13 @@ jobs:
       env_vars: |
         TF_VAR_aws_region=sarasa
         TF_VAR_oidc_role=sarasa
-    secrets: inherit
-
+    # secrets: inherit # This is required to use GITHUB_SECRETS as terraform secrets
 
   download_plan:
     runs-on: ubuntu-latest
     needs: [ terraform_command_validation, terraform_plan ]
     steps:
       - name: Download Terraform artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: terraform/${{needs.terraform_command_validation.outputs.artifact_path}}

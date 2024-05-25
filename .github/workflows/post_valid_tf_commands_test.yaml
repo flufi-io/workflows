@@ -1,5 +1,5 @@
 ---
-# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
 # All rights reserved.
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
@@ -7,7 +7,7 @@
 name: Post valid Terraform commands on PR
 on:
   pull_request:
-    types: [opened]
+#    types: [opened] # This is a test workflow, so we want to run it on every PR event.
 
 permissions:
   contents: read
@@ -15,6 +15,4 @@ permissions:
 
 jobs:
   post_commands:
-    uses:  flufi-io/workflows/.github/workflows/post_valid_tf_commands.yaml@main
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/post_valid_tf_commands.yaml

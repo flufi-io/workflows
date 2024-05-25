@@ -1,5 +1,5 @@
 ---
-# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2023 Flufi LLC.
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
 # All rights reserved.
 # Please note that Flufi LLC owns the original version of this workflow,
 # which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
@@ -14,26 +14,64 @@ on:
         required: true
         type: string
 
-permissions: write-all
-
-env:
-  DOCKER_USERNAME: ${{ github.actor }}
-  DOCKER_PASSWORD: ${{ secrets.github_token }}
+permissions:
+  contents: read
 
 jobs:
   pre-commit:
+    defaults:
+      run:
+        shell: bash
+
     runs-on: ubuntu-latest
-    container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: hashicorp/setup-terraform@v3
+        id: setup-terraform
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          path: main
+          terraform_wrapper: false
+
+      - name: install pre-commit dependencies
+        id: install-pre-commit-dependencies
+        run: |
+          brew install jq
+          brew install terraform-docs
+          brew install pre-commit
+          brew install trivy
+          brew install checkov
+          brew install tflint
+          brew install tfupdate
+
+      - name: Check out the repository
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: terraform init
+        id: terraform-init
+        run: |
+          # Find directories up to three levels deep containing *.tf files
+          directories=$(find . -maxdepth 3 -type f -name '*.tf' -exec dirname {} \; | sort | uniq)
+          # Check if any directories were found
+          if [ -z "$directories" ]; then
+            echo "No directories with *.tf files found."
+            exit 0
+          fi
+          # List the directories where terraform init will be run
+          echo "Terraform init will be run in the following directories:"
+          echo "$directories"
+          # Run terraform init in each of the directories
+          for dir in $directories; do
+            echo "Running terraform init in $dir"
+            (cd "$dir" && terraform init -lock=false -upgrade -reconfigure)
+          done
 
       - name: Run pre-commit checks
         run: |
-          tfenv use latest
+
           pre-commit install --install-hooks
-          pre-commit autoupdate &&  pre-commit run -a
-        working-directory: main
+          pre-commit autoupdate &&  pre-commit run -a --verbose
