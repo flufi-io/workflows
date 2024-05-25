@@ -53,16 +53,6 @@ repos:
         files: (\.tf|\.terraform\.lock\.hcl)$
         exclude: ^\.terraform/.*$|^\.external_modules/.*$
 
-
-      - id: tfupdate
-        name: auto update terraform providers
-        args:
-          - --args=lock
-          - --args=--platform=linux_amd64
-          - --args=--platform=linux_arm64
-          - --args=--platform=darwin_amd64
-          - --args=--platform=darwin_arm64
-
       - id: terraform_trivy
         name: Terraform validate with trivy
         description: Static analysis of Terraform templates to spot potential security issues.
