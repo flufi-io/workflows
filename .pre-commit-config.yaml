@@ -31,8 +31,6 @@ repos:
         files: (\.tf|\.tfvars)$
         exclude: ^\.terraform/.*$|^.*/\.terraform/.*$|^\.external_modules/.*$|^.*/\.external_modules/.*$
         args:
-          - --tf-init-args=-upgrade
-          - --tf-init-args=-reconfigure
           - --tf-init-args=-lock=false
 
       - id: terraform_tflint
