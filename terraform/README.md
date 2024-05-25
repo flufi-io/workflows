@@ -10,7 +10,6 @@ resource "random_password" "password" {
 ```hcl
 # terraform.tfvars
 environment = "sandbox"
-region      = "us-east-1"
 ```
   ```hcl
 # variables.tf
