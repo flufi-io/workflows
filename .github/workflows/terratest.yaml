@@ -14,7 +14,13 @@ on:
         required: true
         type: string
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # This is required to use the AWS Credentials
+
+env:
+  GH_TOKEN: ${{ secrets.github_token }}  # This is required to use the gh cli
 
 jobs:
   terratest:
@@ -23,7 +29,7 @@ jobs:
     container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
           path: main
@@ -51,13 +57,3 @@ jobs:
           export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
           go mod tidy > /dev/null
           go test -v -count=1 -timeout 120m ./...
-
-      - name: Merge Pull Request
-        if: github.event.pull_request.state == 'open' && steps.terratest.outcome == 'success'
-        working-directory: main
-        run: |
-          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          echo "Merging PR #${PR_NUMBER}"
-          gh pr merge "${PR_NUMBER}" --squash --auto
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

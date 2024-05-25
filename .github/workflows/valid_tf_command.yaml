@@ -12,9 +12,6 @@ on:
         description: 'The body of the comment that triggered the workflow'
         required: true
         type: string
-    secrets:
-      GH_TOKEN:
-        required: false
 
     outputs:
       environment:
@@ -38,7 +35,13 @@ on:
           plan-${{ jobs.terraform_command_validation.outputs.environment }}
           -${{ jobs.terraform_command_validation.outputs.commit_sha }}.tar.gz
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  GH_TOKEN: ${{ secrets.github_token }}  # This is required to use the gh cli
+
 jobs:
   terraform_command_validation:
     runs-on: ubuntu-latest
@@ -64,8 +67,6 @@ jobs:
       - name: Get associated open pull request
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: get_pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr_data=$(gh api -X GET "/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
             | jq 'select(.state == "open") | {number: .number, sha: .head.sha, repo: .head.repo.full_name}')
@@ -80,17 +81,14 @@ jobs:
 
       - name: Add link to workflow run in PR comment
         id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
         run: |
           pr_number="${{ steps.get_pr.outputs.pr_number }}"
-          link="https://github.com/${{ steps.get_pr.outputs.repo }}/actions/runs/${{ env.RUN_ID }}"
+          link="https://github.com/${{ steps.get_pr.outputs.repo }}/actions/runs/${{ github.run_id }}"
           job_name="${{ github.job }}"
           comment="You can check the current run of the $job_name [here]($link)"
           curl --request POST \
             --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            --header "authorization: Bearer ${{ secrets.github_token }}" \
             --header 'content-type: application/json' \
             --data "{\"body\": \"${comment}\"}"
 
@@ -98,8 +96,6 @@ jobs:
       - name: Check if valid command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
         id: check_valid_command
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment="${{ inputs.comment_body }}"
           if [[ ! "$comment" =~ ^/ ]]; then
@@ -125,16 +121,17 @@ jobs:
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
-#          env_list=$(gh api repos/${{ github.repository }}/environments \
-#            --header "Accept: application/vnd.github+json" \
-#            | jq -r '.environments[].name')
-#          if [[ "$env_list" =~ (^|,)${environment}($|,) ]]; then
-#            echo "valid=true" >> $GITHUB_OUTPUT
-#            echo "environment=${environment}" >> $GITHUB_OUTPUT
-#          else
-#            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
-#            exit 1
-#          fi
+
+          env_list=$(gh api repos/${{ github.repository }}/environments \
+            --header "Accept: application/vnd.github+json" \
+            | jq -r '.environments[].name')
+          if [[ "$env_list" =~ (^|,)${environment}($|,) ]]; then
+            echo "valid=true" >> $GITHUB_OUTPUT
+            echo "environment=${environment}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid command: environment, '${environment}' does not exist in the repository" >&2
+            exit 1
+          fi
 
       - name: Extract environment and operation from command
         if: ${{ steps.check_pr_comment.outputs.pr_comment == 'true' }}
@@ -143,6 +140,5 @@ jobs:
           comment="${{ inputs.comment_body }}"
           export environment=$(echo "$comment" | awk '{print $3}')
           export operation=$(echo "$comment" | awk '{print $2}')
-
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "operation=$operation" >> $GITHUB_OUTPUT

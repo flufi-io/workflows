@@ -41,7 +41,7 @@ jobs:
         TF_VAR_aws_region=sarasa
         TF_VAR_oidc_role=sarasa
     # secrets: inherit # This is required to use GITHUB_SECRETS as terraform secrets
-    
+
   download_plan:
     runs-on: ubuntu-latest
     needs: [ terraform_command_validation, terraform_plan ]

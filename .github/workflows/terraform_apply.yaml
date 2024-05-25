@@ -48,9 +48,13 @@ on:
         type: string
         default: ''
 
-permissions: write-all
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # This is required to use the AWS Credentials
+
 env:
-  GH_TOKEN: ${{ secrets.github_token }}
+  GH_TOKEN: ${{ secrets.github_token }}  # This is required to use the gh cli
 
 jobs:
   terraform_apply:
@@ -59,6 +63,19 @@ jobs:
     outputs:
       artifact: ${{ steps.setup.outputs.artifact }}
     steps:
+      - name: Add link to workflow run in PR comment
+        id: add_link_to_pr_comment
+        run: |
+          pr_number="${{ inputs.pr_number }}"
+          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ github.run_id }}"
+          job_name="${{ github.job }}"
+          comment="You can check the current run of the $job_name [here]($link)"
+          curl --request POST \
+            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
+            --header "authorization: Bearer ${{ secrets.github_token }}" \
+            --header 'content-type: application/json' \
+            --data "{\"body\": \"${comment}\"}"
+
       - name: setup
         id: setup
         run: |
@@ -68,22 +85,6 @@ jobs:
           do
             echo "$line" >> $GITHUB_ENV
           done
-      - name: Add link to workflow run in PR comment
-        id: add_link_to_pr_comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          pr_number="${{ inputs.pr_number }}"
-          link="https://github.com/${{ inputs.repo }}/actions/runs/${{ env.RUN_ID }}"
-          job_name="${{ github.job }}"
-          comment="You can check the current run of the $job_name [here]($link)"
-          curl --request POST \
-            --url "https://api.github.com/repos/${{ github.repository }}/issues/${pr_number}/comments" \
-            --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            --header 'content-type: application/json' \
-            --data "{\"body\": \"${comment}\"}"
-
 
       - name: configure aws credentials
         id: configure-aws-credentials
@@ -116,8 +117,6 @@ jobs:
 
       - name: Add PR comment if Download Terraform artifacts fails
         if: ${{ failure() && steps.download-artifact.outcome == 'failure' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment_body="error: Failed to download Terraform artifacts. Please run a **terraform plan** before."
           comment_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
@@ -127,8 +126,6 @@ jobs:
 
       - name: Get and Delete Artifacts
         id: get-and-delete-artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           artifact_name="${{ steps.setup.outputs.artifact_name }}"
           artifact_data=$(gh api repos/${{ inputs.repo }}/actions/artifacts)
@@ -164,17 +161,14 @@ jobs:
         id: terraform_apply
         run: |
           terraform init -reconfigure -upgrade
-          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan  > apply_output.txt
+          terraform  ${{ inputs.operation }} -input=false -no-color -auto-approve tfplan
 
         continue-on-error: false
         working-directory: ${{ inputs.working-directory }}
 
       - name: Post Terraform apply output as PR comment
         working-directory: ${{ inputs.working-directory }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls -R
           apply_output=$(cat apply_output.txt)
           max_comment_size=65535
 
