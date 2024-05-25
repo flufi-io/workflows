@@ -27,6 +27,8 @@ jobs:
       - name: Fetch environments
         id: fetch-environments
         continue-on-error: false
+        env:
+          GH_TOKEN: ${{ secrets.github_token }}
         run: |
           env_list=$(gh api repos/${{ github.repository }}/environments \
             --header "Accept: application/vnd.github+json" \
