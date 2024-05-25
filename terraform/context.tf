@@ -21,7 +21,7 @@
 #
 
 module "this" {
-  source = "cloudposse/label/null"
+  source  = "cloudposse/label/null"
   version = "0.25.0" # requires Terraform >= 0.13.0
 
   enabled             = var.enabled
@@ -50,30 +50,30 @@ module "this" {
 variable "context" {
   type = any
   default = {
-	enabled             = true
-	namespace           = null
-	tenant              = null
-	environment         = null
-	stage               = null
-	name                = null
-	delimiter           = null
-	attributes          = []
-	tags = {}
-	additional_tag_map = {}
-	regex_replace_chars = null
-	label_order         = []
-	id_length_limit     = null
-	label_key_case      = null
-	label_value_case    = null
-	descriptor_formats = {}
-	# Note: we have to use [] instead of null for unset lists due to
-	# https://github.com/hashicorp/terraform/issues/28137
-	# which was not fixed until Terraform 1.0.0,
-	# but we want the default to be all the labels in `label_order`
-	# and we want users to be able to prevent all tag generation
-	# by setting `labels_as_tags` to `[]`, so we need
-	# a different sentinel to indicate "default"
-	labels_as_tags      = ["unset"]
+    enabled             = true
+    namespace           = null
+    tenant              = null
+    environment         = null
+    stage               = null
+    name                = null
+    delimiter           = null
+    attributes          = []
+    tags                = {}
+    additional_tag_map  = {}
+    regex_replace_chars = null
+    label_order         = []
+    id_length_limit     = null
+    label_key_case      = null
+    label_value_case    = null
+    descriptor_formats  = {}
+    # Note: we have to use [] instead of null for unset lists due to
+    # https://github.com/hashicorp/terraform/issues/28137
+    # which was not fixed until Terraform 1.0.0,
+    # but we want the default to be all the labels in `label_order`
+    # and we want users to be able to prevent all tag generation
+    # by setting `labels_as_tags` to `[]`, so we need
+    # a different sentinel to indicate "default"
+    labels_as_tags = ["unset"]
   }
   description = <<-EOT
     Single object for setting entire context at once.
@@ -84,15 +84,13 @@ variable "context" {
   EOT
 
   validation {
-	condition     = lookup(var.context, "label_key_case", null) == null ? true :
-	  contains(["lower", "title", "upper"], var.context["label_key_case"])
-	error_message = "Allowed values: `lower`, `title`, `upper`."
+    condition     = lookup(var.context, "label_key_case", null) == null ? true : contains(["lower", "title", "upper"], var.context["label_key_case"])
+    error_message = "Allowed values: `lower`, `title`, `upper`."
   }
 
   validation {
-	condition     = lookup(var.context, "label_value_case", null) == null ? true :
-	  contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
-	error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
+    condition     = lookup(var.context, "label_value_case", null) == null ? true : contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
+    error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
   }
 }
 
@@ -173,7 +171,7 @@ variable "labels_as_tags" {
 
 variable "tags" {
   type        = map(string)
-  default = {}
+  default     = {}
   description = <<-EOT
     Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).
     Neither the tag keys nor the tag values will be modified by this module.
@@ -182,7 +180,7 @@ variable "tags" {
 
 variable "additional_tag_map" {
   type        = map(string)
-  default = {}
+  default     = {}
   description = <<-EOT
     Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.
     This is for some rare cases where resources want additional configuration of tags
@@ -220,8 +218,8 @@ variable "id_length_limit" {
     Does not affect `id_full`.
   EOT
   validation {
-	condition     = var.id_length_limit == null ? true : var.id_length_limit >= 6 || var.id_length_limit == 0
-	error_message = "The id_length_limit must be >= 6 if supplied (not null), or 0 for unlimited length."
+    condition     = var.id_length_limit == null ? true : var.id_length_limit >= 6 || var.id_length_limit == 0
+    error_message = "The id_length_limit must be >= 6 if supplied (not null), or 0 for unlimited length."
   }
 }
 
@@ -236,8 +234,8 @@ variable "label_key_case" {
   EOT
 
   validation {
-	condition     = var.label_key_case == null ? true : contains(["lower", "title", "upper"], var.label_key_case)
-	error_message = "Allowed values: `lower`, `title`, `upper`."
+    condition     = var.label_key_case == null ? true : contains(["lower", "title", "upper"], var.label_key_case)
+    error_message = "Allowed values: `lower`, `title`, `upper`."
   }
 }
 
@@ -254,15 +252,14 @@ variable "label_value_case" {
   EOT
 
   validation {
-	condition     = var.label_value_case == null ? true :
-	  contains(["lower", "title", "upper", "none"], var.label_value_case)
-	error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
+    condition     = var.label_value_case == null ? true : contains(["lower", "title", "upper", "none"], var.label_value_case)
+    error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
   }
 }
 
 variable "descriptor_formats" {
   type        = any
-  default = {}
+  default     = {}
   description = <<-EOT
     Describe additional descriptors to be output in the `descriptors` output map.
     Map of maps. Keys are names of descriptors. Values are maps of the form
