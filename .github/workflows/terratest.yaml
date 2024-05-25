@@ -19,9 +19,6 @@ permissions:
   pull-requests: write
   id-token: write  # This is required to use the AWS Credentials
 
-env:
-  GH_TOKEN: ${{ secrets.github_token }}  # This is required to use the gh cli
-
 jobs:
   terratest:
     runs-on: ubuntu-latest
