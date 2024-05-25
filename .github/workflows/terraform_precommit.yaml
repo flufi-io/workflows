@@ -52,26 +52,11 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: terraform init
-        id: terraform-init
-        run: |
-          # Find directories up to three levels deep containing *.tf files
-          directories=$(find . -maxdepth 3 -type f -name '*.tf' -exec dirname {} \; | sort | uniq)
-          # Check if any directories were found
-          if [ -z "$directories" ]; then
-            echo "No directories with *.tf files found."
-            exit 0
-          fi
-          # List the directories where terraform init will be run
-          echo "Terraform init will be run in the following directories:"
-          echo "$directories"
-          # Run terraform init in each of the directories
-          for dir in $directories; do
-            echo "Running terraform init in $dir"
-            (cd "$dir" && terraform init -lock=false -upgrade -reconfigure)
-          done
+        uses: ./.github/actions/pre-commit-terraform-init
+        with:
+          path: ${{ github.workspace }}
 
       - name: Run pre-commit checks
         run: |
-
           pre-commit install --install-hooks
           pre-commit autoupdate &&  pre-commit run -a --verbose
