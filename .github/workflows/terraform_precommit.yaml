@@ -40,6 +40,7 @@ jobs:
           path: ${{ github.workspace }}
 
       - name: Run pre-commit checks
-        run: |
-          pre-commit install --install-hooks
-          pre-commit autoupdate &&  pre-commit run -a --verbose
+        id: pre-commit
+        uses: ./.github/actions/pre-commit-terraform
+        with:
+          path: ${{ github.workspace }}
