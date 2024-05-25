@@ -23,7 +23,6 @@ repos:
           - --tf-init-args=-upgrade
           - --tf-init-args=-reconfigure
           - --tf-init-args=-lock=false
-          - --hook-config=--retry-once-with-cleanup=true
 
       - id: terraform_providers_lock
         name: Lock terraform provider versions

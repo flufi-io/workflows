@@ -41,6 +41,7 @@ jobs:
       - name: install pre-commit dependencies
         id: install-pre-commit-dependencies
         run: |
+          brew install jq
           brew install terraform-docs
           brew install pre-commit
           brew install trivy
