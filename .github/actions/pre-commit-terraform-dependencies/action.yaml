@@ -20,16 +20,7 @@ runs:
       id: set-up-homebrew
       uses: Homebrew/actions/setup-homebrew@master
 
-    - name: install pre-commit dependencies
-      id: install-pre-commit-dependencies
-      shell: bash
-      run: |
-        set -e
-        brew update
-        brew install jq
-        brew install terraform-docs
-        brew install pre-commit
-        brew install trivy
-        brew install checkov
-        brew install tflint
-        brew install tfupdate
+    - uses: tecolicom/actions-use-homebrew-tools@v1
+      with:
+        tools: 'jq terraform-docs pre-commit trivy checkov tflint tfupdate'
+        cache: yes
