@@ -45,12 +45,12 @@ jobs:
           brew install tflint
           brew install tfenv
           brew install tfupdate
-          
+
       - name: Check out the repository
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-          
+
       - name: Run pre-commit checks
         run: |
           tfenv use latest
