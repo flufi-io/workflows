@@ -12,6 +12,7 @@ updates:
     directory: ".github/workflows"
     schedule:
       interval: "weekly"
+    # Enable version updates for terraform in the .github/actions directory
   - package-ecosystem: github-actions
     directory: ".github/actions"
     schedule:
