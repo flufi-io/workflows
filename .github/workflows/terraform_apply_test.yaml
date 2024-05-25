@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   terraform_command_validation:
+    if: ${{ contains(github.event.comment.body, '/terraform') }}
     uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
