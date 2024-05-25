@@ -12,7 +12,7 @@ permissions: write-all
 
 jobs:
   terraform_command_validation:
-    uses: .github/workflows/valid_tf_command.yaml
+    uses: ./.github/workflows/valid_tf_command.yaml
     with:
       comment_body: ${{ github.event.comment.body }}
 
