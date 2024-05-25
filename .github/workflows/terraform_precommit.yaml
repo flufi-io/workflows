@@ -22,18 +22,32 @@ env:
 
 jobs:
   pre-commit:
+    defaults:
+      run:
+        shell: bash
+
     runs-on: ubuntu-latest
-    container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: hashicorp/setup-terraform@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          path: main
+          terraform_wrapper: false
+
+      - name: install pre-commit dependencies
+        run: |
+          brew install terraform-docs
+          brew install pre-commit
+          brew install trivy
+          brew install checkov
+          brew install tflint
+          brew install tfenv
+          brew install tfupdate
 
       - name: Run pre-commit checks
         run: |
           tfenv use latest
           pre-commit install --install-hooks
           pre-commit autoupdate &&  pre-commit run -a
-        working-directory: main

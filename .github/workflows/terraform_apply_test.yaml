@@ -13,8 +13,6 @@ permissions: write-all
 jobs:
   terraform_command_validation:
     uses: .github/workflows/valid_tf_command.yaml
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     with:
       comment_body: ${{ github.event.comment.body }}
 
