@@ -40,6 +40,5 @@ jobs:
           path: ${{ github.workspace }}
 
       - name: Run pre-commit checks
-        run: |
-          pre-commit install --install-hooks
-          pre-commit autoupdate &&  pre-commit run -a --verbose
+        id: pre-commit
+        uses: pre-commit/action@v3.0.1
