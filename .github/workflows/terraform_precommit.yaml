@@ -34,27 +34,27 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - uses: hashicorp/setup-terraform@v3
+        id: setup-terraform
         with:
           terraform_wrapper: false
 
       - name: install pre-commit dependencies
+        id: install-pre-commit-dependencies
         run: |
           brew install terraform-docs
           brew install pre-commit
           brew install trivy
           brew install checkov
           brew install tflint
-          brew install tfenv
           brew install tfupdate
 
       - name: Check out the repository
+        id: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
       - name: Run pre-commit checks
         run: |
-          tfenv use latest
-          terraform init -input=false -no-color -upgrade -reconfigure -lock=false
           pre-commit install --install-hooks
           pre-commit autoupdate &&  pre-commit run -a --verbose
