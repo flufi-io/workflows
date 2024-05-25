@@ -1,0 +1,14 @@
+---
+version: 2
+updates:
+  # Enable version updates for terraform in the root directory
+  - package-ecosystem: "terraform"
+    directory: "terraform"
+    # Check for updates once a week
+    schedule:
+      interval: "weekly"
+    # Enable version updates for terraform in the .github/workflows directory
+  - package-ecosystem: github-actions
+    directory: ".github/workflows"
+    schedule:
+      interval: "weekly"

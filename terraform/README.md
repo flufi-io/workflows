@@ -9,10 +9,8 @@ resource "random_password" "password" {
 ```
 ```hcl
 # terraform.tfvars
-namespace   = "flufi"
-stage       = "module"
-label_order = ["namespace", "stage", "name", "environment", "attributes"]
-name        = "template"
+environment = "sandbox"
+region      = "us-east-1"
 ```
   ```hcl
 # variables.tf
@@ -35,7 +33,7 @@ variable "secret" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_random"></a> [random](#provider\_random) | 3.2.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.6.0 |
 ## Inputs
 
 | Name | Description | Type | Default | Required |
