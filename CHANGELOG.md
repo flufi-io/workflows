@@ -1,5 +1,15 @@
 # [2024-05-25]
 
+## Added
+
+- Introduced a new GitHub Action for running pre-commit checks on Terraform files, utilizing caching to enhance speed.
+- Updated the workflow to use the new pre-commit Terraform GitHub Action.
+
+## Changed
+
+- Optimized the installation of pre-commit dependencies by using a consolidated action with caching capabilities.
+# [2024-05-25]
+
 ## Changed
 
 - Updated GitHub Actions workflows to trigger on comments starting with '/terraform' instead of containing '/terraform'.
