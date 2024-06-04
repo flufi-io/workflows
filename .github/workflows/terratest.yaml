@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: 'us-east-1'
+      working-directory:
+        description: 'Working directory to run the tests'
+        required: false
+        type: string
+        default: 'examples/complete'
 
 permissions:
   contents: read
