@@ -23,15 +23,17 @@ on:
         required: false
         type: string
         default: 'examples/complete'
-    secrets:
-      GITHUB_TOKEN:
-        description: 'PERSONAL ACCESS TOKEN'
+      env:
+        description: 'Environment variables to set'
         required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
   pull-requests: write
   id-token: write  # This is required to use the AWS Credentials
+env: ${{ inputs.env }}
 
 jobs:
   terratest:
