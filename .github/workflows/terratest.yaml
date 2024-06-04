@@ -13,6 +13,11 @@ on:
         description: 'Branch or commit to checkout'
         required: true
         type: string
+      region:
+        description: 'AWS region to use'
+        required: false
+        type: string
+        default: 'us-east-1'
 
 permissions:
   contents: read
@@ -23,7 +28,6 @@ jobs:
   terratest:
     runs-on: ubuntu-latest
     environment: sandbox
-    container: ghcr.io/flufi-io/terraform-docker-action:latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -35,18 +39,27 @@ jobs:
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::732758452413:role/github-oidc
-          aws-region: us-east-1
-
+          role-to-assume: arn:aws:iam::${{vars.account_id}}:role/github-oidc
+          aws-region: ${{ inputs.region }}
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        id: setup-terraform
+        with:
+          terraform_wrapper: false
+          
       - uses: actions/setup-go@v5
         with:
           cache-dependency-path: main/tests/complete/go.mod
           go-version: '>=1.21.0'
-
-      - name: setup tofu
+      
+      - name: decrypt terraform secrets
+        working-directory: ${{ inputs.working-directory }}
+        shell: bash
         run: |
-          tfenv use latest
-
+          bash secrets.sh -d ${{ inputs.environment }}
+        continue-on-error: true
+        
       - name: run terratest
         id: terratest
         working-directory: main/tests/complete
