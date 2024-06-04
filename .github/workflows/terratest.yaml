@@ -23,6 +23,10 @@ on:
         required: false
         type: string
         default: 'examples/complete'
+    secrets:
+      GITHUB_TOKEN:
+        description: 'PERSONAL ACCESS TOKEN'
+        required: false
 
 permissions:
   contents: read
@@ -38,7 +42,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-          
+
       - name: configure aws credentials
         id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
