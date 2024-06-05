@@ -27,7 +27,7 @@ runs:
           echo "No directories with *.tf files found."
           exit 0
         fi
-        echo "directories=$directories" >> $GITHUB_OUTPUT
+        echo "directories=$(echo $directories | tr ' ' '\n')" >> $GITHUB_OUTPUT
 
     - name: List directories
       shell: bash
