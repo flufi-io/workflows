@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pre-commit
+  cancel-in-progress: true
+
 jobs:
   pre-commit:
     defaults:
@@ -32,15 +36,15 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: setup pre-commit dependencies
-        uses: ./.github/actions/pre-commit-terraform-dependencies
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-dependencies@main
 
       - name: terraform init
-        uses: ./.github/actions/pre-commit-terraform-init
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-init@main
         with:
           path: ${{ github.workspace }}
 
       - name: Run pre-commit checks
         id: pre-commit
-        uses: ./.github/actions/pre-commit-terraform
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform@main
         with:
           path: ${{ github.workspace }}

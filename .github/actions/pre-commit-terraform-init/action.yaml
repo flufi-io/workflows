@@ -18,8 +18,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Find directories with *.tf files
-      id: find-directories
+    - name: Find directories with .tf files and run terraform init
+      id: terraform-init
       shell: bash
       run: |
         directories=$(find ${{ inputs.path }} -maxdepth 3 -type f -name '*.tf' -exec dirname {} \; | sort | uniq)
@@ -27,17 +27,9 @@ runs:
           echo "No directories with *.tf files found."
           exit 0
         fi
-        echo "directories=$directories" >> $GITHUB_ENV
-
-    - name: List directories
-      shell: bash
-      run: |
+        directories=$(echo $directories | tr ' ' '\n')
         echo "Terraform init will be run in the following directories:"
-        echo "$directories"
-
-    - name: Run terraform init
-      shell: bash
-      run: |
+        echo $directories
         for dir in $directories; do
           echo "Running terraform init in $dir"
           (cd "$dir" && terraform init -lock=false -upgrade -reconfigure)

@@ -1,0 +1,22 @@
+---
+# This workflow is brought to you by Flufi LLC and is licensed under the MIT License. (c) 2024 Flufi LLC.
+# All rights reserved.
+# Please note that Flufi LLC owns the original version of this workflow,
+# which can be found at https://github.com/flufi-io/workflows. Thank you for using our workflows!
+
+# This action initializes Terraform in directories up to three levels deep containing *.tf files
+
+name: 'setup-sops'
+description: 'Setup Mozilla SOPS'
+author: 'Flufi LLC'
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: install sops
+      shell: bash
+      run: |
+        curl -LO https://github.com/getsops/sops/releases/download/v3.8.1/sops-v3.8.1.linux.amd64
+        mv sops-v3.8.1.linux.amd64 /usr/local/bin/sops
+        chmod +x /usr/local/bin/sops
