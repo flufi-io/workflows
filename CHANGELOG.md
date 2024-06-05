@@ -1,3 +1,17 @@
+# [2024-06-05]
+
+## Added
+
+- Introduced a new `setup-sops` action for installing Mozilla SOPS.
+- Added new inputs for AWS region and working directory in the `terratest` workflow.
+- Added concurrency control to `terraform_precommit` and `terratest` workflows.
+
+## Changed
+
+- Combined directory finding and `terraform init` steps in the `pre-commit-terraform-init` action.
+- Updated action references to the `terratest` branch in the `terraform_precommit` workflow.
+- Enhanced `terratest` workflow with setup steps for Terraform and SOPS, and improved paths and environment variables handling.
+
 # [2024-05-25]
 
 ## Added
