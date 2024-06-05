@@ -36,15 +36,15 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: setup pre-commit dependencies
-        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-dependencies@main
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-dependencies@terratest
 
       - name: terraform init
-        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-init@main
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform-init@terratest
         with:
           path: ${{ github.workspace }}
 
       - name: Run pre-commit checks
         id: pre-commit
-        uses: flufi-io/workflows/.github/actions/pre-commit-terraform@main
+        uses: flufi-io/workflows/.github/actions/pre-commit-terraform@terratest
         with:
           path: ${{ github.workspace }}
