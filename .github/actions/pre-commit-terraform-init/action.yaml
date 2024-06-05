@@ -27,18 +27,18 @@ runs:
           echo "No directories with *.tf files found."
           exit 0
         fi
-        echo "directories=$(echo $directories | tr ' ' '\n')" >> $GITHUB_OUTPUT
+        echo "directories=$(echo $directories | tr ' ' '\n')" >> $GITHUB_ENV
 
     - name: List directories
       shell: bash
       run: |
         echo "Terraform init will be run in the following directories:"
-        echo "${{steps.find-directories.outputs.directories}}"
+        echo ${{ env.directories }}
 
     - name: Run terraform init
       shell: bash
       run: |
-        for dir in "${{steps.find-directories.outputs.directories}}"; do
+        for dir in ${{ env.directories }}; do
           echo "Running terraform init in $dir"
           (cd "$dir" && terraform init -lock=false -upgrade -reconfigure)
         done
