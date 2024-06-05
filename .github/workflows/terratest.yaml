@@ -30,6 +30,9 @@ permissions:
   pull-requests: write
   id-token: write  # This is required to use the AWS Credentials
 
+concurrency:
+  group: terratest
+  cancel-in-progress: true
 jobs:
   terratest:
     runs-on: ubuntu-latest

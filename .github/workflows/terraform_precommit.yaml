@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pre-commit
+  cancel-in-progress: true
+
 jobs:
   pre-commit:
     defaults:
